@@ -13,8 +13,25 @@ class MyApp extends StatelessWidget {
       home: const SplashScreen(duration: 3, goToPage: WelcomeScreen()),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        brightness: Brightness.light,
         primarySwatch: Colors.teal,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: Colors.grey[200],
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.teal,
+        ).copyWith(
+          secondary: Colors.tealAccent,
+        ),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.teal,
+        scaffoldBackgroundColor: Colors.grey[900],
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.teal,
+          brightness: Brightness.dark,
+        ).copyWith(
+          secondary: Colors.tealAccent,
+        ),
       ),
     );
   }

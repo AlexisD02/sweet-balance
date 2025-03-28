@@ -64,7 +64,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        color: Colors.grey[200],
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           children: [
             const SizedBox(height: 60),
@@ -154,7 +154,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _currentIndex == index
-                          ? Colors.teal
+                          ? Theme.of(context).colorScheme.primary
                           : Colors.grey[400],
                     ),
                   ),
@@ -174,7 +174,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 50.0,
                   vertical: 12.0,
@@ -212,10 +212,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       MaterialPageRoute(builder: (context) => const SignInScreen()),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     "Sign in",
                     style: TextStyle(
-                      color: Colors.teal,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),

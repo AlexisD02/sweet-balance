@@ -13,7 +13,20 @@
           "package_name": "uk.ac.uclan.ademetriou5.sweet_balance"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "69272699033-4s7d98f1entam14484pn5v7e8b04rucn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "uk.ac.uclan.ademetriou5.sweet_balance",
+            "certificate_hash": "aa8b351ee86919ae734f42ad22d51e8c5799c29c"
+          }
+        },
+        {
+          "client_id": "69272699033-mt9u2n7gklmpbjposlv7ka8k1meiai90.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD7TdzEMcac1poBUVkfGhMujpZ29Yg8ctM"
@@ -21,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "69272699033-mt9u2n7gklmpbjposlv7ka8k1meiai90.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

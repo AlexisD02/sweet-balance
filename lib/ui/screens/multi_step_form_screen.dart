@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sweet_balance/ui/screens/home_screen.dart';
 
 import '../widgets/multiStepForm/activity_section.dart';
@@ -110,14 +113,45 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
           agreeToPrivacyPolicy = value;
         });
       },
-      onSignUpPressed: () {
+      onSignUpPressed: () async {
         if (_formKey.currentState!.validate()) {
           if (agreeToTerms && agreeToPrivacyPolicy) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-                  (route) => false,
-            );
+            try {
+              final credential = await FirebaseAuth.instance
+                  .createUserWithEmailAndPassword(
+                email: emailController.text.trim(),
+                password: passwordController.text.trim(),
+              );
+
+              final uid = credential.user?.uid;
+              if (uid != null) {
+                await FirebaseFirestore.instance.collection('users').doc(uid).set({
+                  'firstName': firstNameController.text.trim(),
+                  'email': emailController.text.trim(),
+                  'weight': double.tryParse(weightController.text.trim()) ?? 0,
+                  'gender': selectedGender ?? '',
+                  'otherGender': otherGenderController.text.trim(),
+                  'height': double.tryParse(heightController.text.trim()) ?? 0,
+                  'dob': selectedDate.toIso8601String(),
+                  'activityLevel': selectedActivityIndex,
+                  'createdAt': Timestamp.now(),
+                });
+
+                if (!mounted) return;
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
+                      (route) => false,
+                );
+              }
+            } on FirebaseAuthException catch (e) {
+              if (!mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(e.message ?? 'Sign up failed.')),
+              );
+            }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -127,8 +161,60 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
           }
         }
       },
-      onGoogleSignUpPressed: () {
-        // TODO: Handle Google sign-up logic
+      onGoogleSignUpPressed: () async {
+        try {
+          final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+          if (googleUser == null) {
+            // User canceled the sign-in
+            return;
+          }
+
+          final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+          final credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+
+          // Sign in to Firebase with the Google credentials
+          final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+          final uid = userCredential.user?.uid;
+          final email = userCredential.user?.email ?? '';
+          final displayName = userCredential.user?.displayName ?? '';
+
+          if (!mounted) return;
+
+          // Check if user data exists in Firestore
+          final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+          final doc = await docRef.get();
+
+          if (!doc.exists) {
+            // New user, store default profile
+            await docRef.set({
+              'firstName': displayName,
+              'email': email,
+              'weight': double.tryParse(weightController.text.trim()) ?? 0,
+              'gender': selectedGender ?? '',
+              'otherGender': otherGenderController.text.trim(),
+              'height': double.tryParse(heightController.text.trim()) ?? 0,
+              'dob': selectedDate.toIso8601String(),
+              'activityLevel': selectedActivityIndex,
+              'createdAt': Timestamp.now(),
+            });
+          }
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+                (route) => false,
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Google sign-in failed: ${e.toString()}")),
+          );
+        }
       },
     );
   }
@@ -189,10 +275,10 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          backgroundColor: Colors.grey[200],
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
           leading: IconButton(
@@ -209,10 +295,10 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
                       (route) => false,
                 );
               },
-              child: const Text(
+              child: Text(
                 "SKIP",
                 style: TextStyle(
-                  color: Colors.teal,
+                    color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w900,
                   fontSize: 14.0,
                 ),
@@ -258,7 +344,7 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
                 ElevatedButton(
                   onPressed: _nextStep,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     minimumSize: const Size.fromHeight(50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
