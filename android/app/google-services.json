@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "69272699033",
+    "firebase_url": "https://sweet-balance-e64f5-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "sweet-balance-e64f5",
+    "storage_bucket": "sweet-balance-e64f5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:69272699033:android:6e1299705fef74e153b808",
+        "android_client_info": {
+          "package_name": "uk.ac.uclan.ademetriou5.sweet_balance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7TdzEMcac1poBUVkfGhMujpZ29Yg8ctM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
