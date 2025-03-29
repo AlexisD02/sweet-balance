@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SweetBalance',
-      home: const SplashScreen(duration: 3, goToPage: WelcomeScreen()),
+      home: const SplashScreen(duration: 3),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,

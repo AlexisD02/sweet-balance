@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
-import '../widgets/food_item_card.dart';
+import 'package:sweet_balance/ui/screens/product_detail_screen.dart';
 import '../widgets/search_field.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -13,100 +14,234 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   String _searchQuery = '';
-  final List<Product> _searchResults = [];
-  final bool _isLoading = false;
-  final bool _hasError = false;
+  List<Product> _products = [];
+  bool _isLoading = false;
+  bool _hasError = false;
+  Timer? _debounce;
 
-  final List<_SampleItem> _sampleItems = [
-    _SampleItem(
-      imageUrl: 'https://via.placeholder.com/600x400?text=Fast+Food',
-      label: "Fast Food",
-      description: "Often high in carbs & sugar",
-    ),
-    _SampleItem(
-      imageUrl: 'https://via.placeholder.com/600x400?text=Pizza',
-      label: "Pizza",
-      description: "Check sauces & refined carbs",
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchPopularProducts();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final hasQuery = _searchQuery.trim().isNotEmpty;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[200],
         centerTitle: false,
         elevation: 0,
         title: SearchField(
-            placeholder: "Search for a product...",
-            onChanged: (query) {
-              setState(() {
-                _searchQuery = query;
-              });
-            },
-          ),
+          placeholder: "Search for a product...",
+          onChanged: (query) {
+            setState(() {
+              _searchQuery = query;
+            });
+
+            _debounce?.cancel();
+            _debounce = Timer(const Duration(milliseconds: 1500), () {
+              if (_searchQuery.trim().isNotEmpty) {
+                searchProducts(_searchQuery);
+              } else {
+                fetchPopularProducts();
+              }
+            });
+          },
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _hasError
-            ? const Center(
-          child: Text(
-            "An error occurred. Please try again.",
-            style: TextStyle(color: Colors.red),
-          ),
-        )
-            : (hasQuery && _searchResults.isEmpty)
-            ? const Center(child: Text("No results found."))
-            : hasQuery
-            ? _buildSearchResults()
-            : _buildSampleList(),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _hasError
+          ? const Center(
+        child: Text("An error occurred. Please try again.",
+            style: TextStyle(color: Colors.red)),
+      )
+          : _products.isEmpty
+          ? const Center(
+        child: Text("No results found.",
+            style: TextStyle(color: Colors.black54)),
+      )
+          : _buildProductList(),
     );
   }
 
-  Widget _buildSearchResults() {
-    return ListView.builder(
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final product = _searchResults[index];
-        return ListTile(
-          leading: product.imageFrontUrl != null
-              ? Image.network(product.imageFrontUrl!, width: 50)
-              : const Icon(Icons.fastfood),
-          title: Text(product.productName ?? "Unknown Product"),
-          subtitle: Text(product.brands ?? "Unknown Brand"),
-        );
-      },
-    );
+  Future<void> fetchPopularProducts() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      final config = ProductSearchQueryConfiguration(
+        version: ProductQueryVersion.v3,
+        language: OpenFoodFactsLanguage.ENGLISH,
+        parametersList: const [
+          PageSize(size: 20),
+          SortBy(option: SortOption.POPULARITY),
+        ],
+        fields: [
+          ProductField.NAME,
+          ProductField.BRANDS,
+          ProductField.IMAGE_FRONT_URL,
+        ],
+      );
+
+      final result = await OpenFoodAPIClient.searchProducts(
+        const User(userId: '0', password: ''),
+        config,
+      );
+
+      final popular = result.products ?? [];
+      setState(() {
+        _products = popular;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
+      });
+    }
   }
 
-  Widget _buildSampleList() {
+  Future<void> searchProducts(String query) async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      final config = ProductSearchQueryConfiguration(
+        version: ProductQueryVersion.v3,
+        language: OpenFoodFactsLanguage.ENGLISH,
+        parametersList: [
+          SearchTerms(terms: [query]),
+          const PageSize(size: 20),
+          const SortBy(option: SortOption.POPULARITY),
+        ],
+        fields: [
+          ProductField.NAME,
+          ProductField.BRANDS,
+          ProductField.IMAGE_FRONT_URL,
+          ProductField.NUTRIMENTS,
+          ProductField.INGREDIENTS_TEXT,
+        ],
+      );
+
+      final result = await OpenFoodAPIClient.searchProducts(
+        const User(userId: '0', password: ''),
+        config,
+      );
+
+      final searchResults = result.products ?? [];
+      setState(() {
+        _products = searchResults;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _hasError = true;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Widget _buildProductList() {
     return ListView.builder(
-      itemCount: _sampleItems.length,
+      itemCount: _products.length,
       itemBuilder: (context, index) {
-        final item = _sampleItems[index];
+        final product = _products[index];
+        final imageUrl = product.imageFrontUrl;
+        final title = product.productName ?? "Unknown Product";
+        final brand = product.brands ?? "Unknown Brand";
+
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-          child: SampleItemCard(
-            imageUrl: item.imageUrl,
-            label: item.label,
-            description: item.description,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: 180,
+                  width: double.infinity,
+                  child: imageUrl != null
+                      ? Image.network(imageUrl, fit: BoxFit.cover)
+                      : Container(
+                    color: Colors.grey[300],
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.fastfood, size: 40, color: Colors.grey),
+                  ),
+                ),
+                Container(
+                  height: 180,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.center,
+                      colors: [
+                        Colors.black.withOpacity(0.5),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 16,
+                  bottom: 16,
+                  right: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        brand,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => ProductDetailScreen(product: product),
+                      //   ),
+                      // );
+                    },
+                    child: const SizedBox(height: 180, width: double.infinity),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
-}
-
-class _SampleItem {
-  final String imageUrl;
-  final String label;
-  final String description;
-
-  _SampleItem({
-    required this.imageUrl,
-    required this.label,
-    required this.description,
-  });
 }

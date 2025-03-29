@@ -1,5 +1,3 @@
-// lib/widgets/multiStepForm/register_step.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -199,9 +197,12 @@ class RegisterStep extends StatelessWidget {
         Row(
           children: [
             Switch(
-              activeColor: Colors.teal,
               value: agreeToTerms,
               onChanged: onAgreeToTermsChanged,
+              activeColor: Colors.teal,
+              activeTrackColor: Colors.teal.shade200,
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.grey.shade300,
             ),
             const SizedBox(width: 10.0),
             const Text("I agree to the "),
@@ -221,9 +222,12 @@ class RegisterStep extends StatelessWidget {
         Row(
           children: [
             Switch(
+              value: agreeToTerms,
+              onChanged: onAgreeToTermsChanged,
               activeColor: Colors.teal,
-              value: agreeToPrivacyPolicy,
-              onChanged: onAgreeToPrivacyPolicyChanged,
+              activeTrackColor: Colors.teal.shade200,
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.grey.shade300,
             ),
             const SizedBox(width: 10.0),
             const Text("I agree to the "),

@@ -1,25 +1,46 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class SplashScreen extends StatelessWidget {
+import 'package:sweet_balance/ui/screens/home_screen.dart';
+import 'package:sweet_balance/ui/screens/welcome_screen.dart';
+
+class SplashScreen extends StatefulWidget {
   final int duration;
-  final Widget goToPage;
 
   const SplashScreen({
     super.key,
-    required this.goToPage,
-    required this.duration,
+    this.duration = 3,
   });
 
   @override
-  Widget build(BuildContext context) {
-    Future.delayed(Duration(seconds: duration), () {
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(Duration(seconds: widget.duration), () {
+      final user = FirebaseAuth.instance.currentUser;
+
+      final Widget nextPage = user != null
+          ? const HomePage()
+          : const WelcomeScreen();
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => goToPage),
+        MaterialPageRoute(builder: (context) => nextPage),
       );
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         color: Colors.teal,

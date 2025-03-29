@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reorderables/reorderables.dart';
 import 'package:sweet_balance/ui/screens/meals_screen.dart';
-import 'package:sweet_balance/ui/screens/notifications_screen.dart';
 import 'package:sweet_balance/ui/screens/profile_screen.dart';
 import 'package:sweet_balance/ui/screens/add_info_card_screen.dart';
 
@@ -56,8 +55,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
-        // set NeverScrollableScrollPhysics().
-        // physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
@@ -66,7 +63,6 @@ class _HomePageState extends State<HomePage> {
         children: [
           _buildHomePage,
           const MealsScreen(),
-          const NotificationScreen(),
           const ProfileScreen(),
         ],
       ),

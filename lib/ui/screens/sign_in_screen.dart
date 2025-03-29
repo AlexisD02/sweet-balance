@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 import 'package:sweet_balance/ui/screens/home_screen.dart';
 import 'package:sweet_balance/ui/screens/multi_step_form_screen.dart';
+import 'package:sweet_balance/ui/screens/forgot_pass_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -19,17 +24,9 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.grey[200],
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -119,7 +116,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         if (value == null || value.isEmpty) {
                           return "Please enter your email.";
                         }
-                        if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$")
+                        if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
                             .hasMatch(value)) {
                           return "Please enter a valid email.";
                         }
@@ -190,7 +187,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       alignment: Alignment.centerRight,
                       child: GestureDetector(
                         onTap: () {
-                          // TODO: Add "Forgot Password" action
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                          );
                         },
                         child: const Text(
                           "Forgot your password?",
@@ -205,13 +205,37 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: 30),
 
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomePage()),
-                                (route) => false,
-                          );
+                          try {
+                            final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                              email: _emailController.text.trim(),
+                              password: _passwordController.text.trim(),
+                            );
+
+                            final user = credential.user;
+                            if (user != null && mounted) {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => const HomePage()),
+                                    (route) => false,
+                              );
+                            }
+                          } on FirebaseAuthException catch (e) {
+                            String errorMsg = 'Sign in failed.';
+
+                            if (e.code == 'user-not-found') {
+                              errorMsg = 'No user found for that email.';
+                            } else if (e.code == 'wrong-password') {
+                              errorMsg = 'Incorrect password.';
+                            } else if (e.code == 'invalid-email') {
+                              errorMsg = 'Invalid email format.';
+                            }
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(errorMsg)),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -265,8 +289,50 @@ class _SignInScreenState extends State<SignInScreen> {
               const SizedBox(height: 25),
 
               ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Handle Google sign-in action
+                onPressed: () async {
+                  try {
+                    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+                    if (googleUser == null) return;
+
+                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+                    final credential = GoogleAuthProvider.credential(
+                      accessToken: googleAuth.accessToken,
+                      idToken: googleAuth.idToken,
+                    );
+
+                    final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+                    final uid = userCredential.user?.uid;
+
+                    if (!mounted || uid == null) return;
+
+                    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+                    if (doc.exists) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomePage()),
+                            (route) => false,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("No account found. Please register first."),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+
+                      await FirebaseAuth.instance.signOut(); // cleanup
+                    }
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Google sign-in failed. Please try again."),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
