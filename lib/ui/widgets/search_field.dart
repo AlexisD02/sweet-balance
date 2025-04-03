@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:openfoodfacts/openfoodfacts.dart';
 
 class SearchField extends StatelessWidget {
   final String placeholder;
   final Function(String) onChanged;
-  final Function(SortOption) onSortChanged;
+  final VoidCallback onOpenFilter;
 
   const SearchField({
     super.key,
     required this.placeholder,
     required this.onChanged,
-    required this.onSortChanged,
+    required this.onOpenFilter,
   });
 
   @override
@@ -25,7 +24,6 @@ class SearchField extends StatelessWidget {
             prefixIcon: const Icon(Icons.search),
             fillColor: Colors.white,
             filled: true,
-            // Increased right padding to avoid icon overlap
             contentPadding: const EdgeInsets.fromLTRB(12, 14, 48, 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
@@ -43,26 +41,9 @@ class SearchField extends StatelessWidget {
         ),
         Positioned(
           right: 8,
-          child: PopupMenuButton<SortOption>(
-            icon: const Icon(Icons.filter_list, color: Colors.black),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: SortOption.POPULARITY,
-                child: Text("Popularity"),
-              ),
-              const PopupMenuItem(
-                value: SortOption.PRODUCT_NAME,
-                child: Text("Alphabetical"),
-              ),
-              const PopupMenuItem(
-                value: SortOption.CREATED,
-                child: Text("Newest First"),
-              ),
-            ],
-            onSelected: onSortChanged,
+          child: IconButton(
+            icon: const Icon(Icons.filter_alt_outlined, color: Colors.black),
+            onPressed: onOpenFilter,
           ),
         ),
       ],

@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
-
-import 'package:sweet_balance/ui/screens/product_detail_screen.dart';
 import '../widgets/search_field.dart';
+import 'product_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final SortOption initialSort;
@@ -20,17 +19,17 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   String _searchQuery = '';
   List<Product> _products = [];
+  List<String> _selectedCategories = [];
   bool _isLoading = false;
   bool _hasError = false;
   Timer? _debounce;
-
-  SortOption _sortOption = SortOption.POPULARITY;
+  late SortOption _sortOption;
 
   @override
   void initState() {
     super.initState();
     _sortOption = widget.initialSort;
-    fetchPopularProducts();
+    _fetchProducts();
   }
 
   @override
@@ -39,114 +38,42 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _onSortOptionChanged(SortOption selected) {
-    setState(() => _sortOption = selected);
-    if (_searchQuery.trim().isNotEmpty) {
-      searchProducts(_searchQuery);
-    } else {
-      fetchPopularProducts();
-    }
+  void _onSearchChanged(String query) {
+    setState(() => _searchQuery = query);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 700), _fetchProducts);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.grey[200],
-        centerTitle: false,
-        elevation: 0,
-        title: SearchField(
-          placeholder: "Search for a product...",
-          onChanged: (query) {
-            setState(() {
-              _searchQuery = query;
-            });
-
-            _debounce?.cancel();
-            _debounce = Timer(const Duration(milliseconds: 800), () {
-              if (_searchQuery.trim().isNotEmpty) {
-                searchProducts(_searchQuery);
-              } else {
-                fetchPopularProducts();
-              }
-            });
-          },
-          onSortChanged: _onSortOptionChanged,
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _hasError
-          ? const Center(
-        child: Text(
-          "An error occurred. Please try again.",
-          style: TextStyle(color: Colors.red),
-        ),
-      )
-          : _products.isEmpty
-          ? const Center(
-        child: Text(
-          "No results found.",
-          style: TextStyle(color: Colors.black54),
-        ),
-      )
-          : _buildProductList(),
-    );
+  void _onCategoryChanged(List<String> selected) {
+    setState(() {
+      _selectedCategories = selected;
+    });
+    _fetchProducts();
   }
 
-  Future<void> fetchPopularProducts() async {
+  Future<void> _fetchProducts() async {
     setState(() {
       _isLoading = true;
       _hasError = false;
     });
 
     try {
+      final parameters = <Parameter>[
+        const PageSize(size: 20),
+        SortBy(option: _sortOption),
+        if (_searchQuery.trim().isNotEmpty)
+          SearchTerms(terms: [_searchQuery]),
+        for (final category in _selectedCategories)
+          TagFilter.fromType(
+            tagFilterType: TagFilterType.CATEGORIES,
+            tagName: category,
+          ),
+      ];
+
       final config = ProductSearchQueryConfiguration(
-        version: ProductQueryVersion.v3,
         language: OpenFoodFactsLanguage.ENGLISH,
-        parametersList: [
-          const PageSize(size: 20),
-          SortBy(option: _sortOption),
-        ],
-        fields: [
-          ProductField.NAME,
-          ProductField.BRANDS,
-          ProductField.IMAGE_FRONT_URL,
-        ],
-      );
-
-      final result = await OpenFoodAPIClient.searchProducts(
-        const User(userId: '0', password: ''),
-        config,
-      );
-
-      setState(() {
-        _products = result.products ?? [];
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _hasError = true;
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> searchProducts(String query) async {
-    setState(() {
-      _isLoading = true;
-      _hasError = false;
-    });
-
-    try {
-      final config = ProductSearchQueryConfiguration(
         version: ProductQueryVersion.v3,
-        language: OpenFoodFactsLanguage.ENGLISH,
-        parametersList: [
-          SearchTerms(terms: [query]),
-          const PageSize(size: 20),
-          SortBy(option: _sortOption),
-        ],
+        parametersList: parameters,
         fields: [
           ProductField.NAME,
           ProductField.BRANDS,
@@ -167,10 +94,94 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     } catch (e) {
       setState(() {
-        _hasError = true;
         _isLoading = false;
+        _hasError = true;
       });
     }
+  }
+
+  void _showCategoryFilterSheet() {
+    final allCategories = [
+      'drinks',
+      'meals',
+      'snacks',
+      'breakfasts',
+      'fruit-based-beverages',
+      'sweets',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (BuildContext context) {
+        final tempSelected = [..._selectedCategories];
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Filter by Category',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  ...allCategories.map((category) {
+                    return CheckboxListTile(
+                      value: tempSelected.contains(category),
+                      title: Text(category.replaceAll('-', ' ').toUpperCase()),
+                      onChanged: (bool? checked) {
+                        setModalState(() {
+                          if (checked == true) {
+                            tempSelected.add(category);
+                          } else {
+                            tempSelected.remove(category);
+                          }
+                        });
+                      },
+                    );
+                  }),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _onCategoryChanged(tempSelected);
+                    },
+                    child: const Text('Apply Filter'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.grey[200],
+        elevation: 0,
+        titleSpacing: 10,
+        title: SearchField(
+          placeholder: 'Search for a product...',
+          onChanged: _onSearchChanged,
+          onOpenFilter: _showCategoryFilterSheet,
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _hasError
+          ? const Center(child: Text('An error occurred'))
+          : _products.isEmpty
+          ? const Center(child: Text('No results found.'))
+          : _buildProductList(),
+    );
   }
 
   Widget _buildProductList() {
@@ -206,9 +217,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.center,
-                      colors: [
-                        Colors.black54,
-                          Colors.transparent],
+                      colors: [Colors.black54, Colors.transparent],
                     ),
                   ),
                 ),
