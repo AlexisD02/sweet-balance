@@ -12,25 +12,24 @@ class NutritionOverview extends StatelessWidget {
       return const Text("No nutrition data available.");
     }
 
-    final calories = nutriments!.getValue(Nutrient.energyKCal, PerSize.oneHundredGrams) ?? 0;
-    final protein = nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0;
-    final fat = nutriments!.getValue(Nutrient.fat, PerSize.oneHundredGrams) ?? 0;
-    final carbs = nutriments!.getValue(Nutrient.carbohydrates, PerSize.oneHundredGrams) ?? 0;
-    final sugars = nutriments!.getValue(Nutrient.sugars, PerSize.oneHundredGrams) ?? 0;
-    final fiber = nutriments!.getValue(Nutrient.fiber, PerSize.oneHundredGrams) ?? 0;
-    final salt = nutriments!.getValue(Nutrient.salt, PerSize.oneHundredGrams) ?? 0;
+    final nutrientsToShow = {
+      Nutrient.energyKCal: Colors.teal,
+      Nutrient.fat: Colors.orange,
+      Nutrient.proteins: Colors.blueAccent,
+      Nutrient.sugars: Colors.redAccent,
+    };
 
-    Widget buildRow(String label, double value, Color color) {
+    Widget buildStatRow(Nutrient nutrient, double value, Color color) {
+      final label = nutrient.offTag
+          .replaceAll('-', ' ')
+          .replaceFirst(nutrient.offTag[0], nutrient.offTag[0].toUpperCase());
+
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           children: [
-            Container(
-              width: 10,
-              height: 10,
-              margin: const EdgeInsets.only(right: 10),
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
+            Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 label,
@@ -38,36 +37,46 @@ class NutritionOverview extends StatelessWidget {
               ),
             ),
             Text(
-              "${value.toStringAsFixed(1)}g",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              "${value.toStringAsFixed(1)} ${UnitHelper.unitToString(nutrient.typicalUnit)}",
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
         ),
       );
     }
 
+    final List<Widget> statRows = [];
+
+    for (final entry in nutrientsToShow.entries) {
+      final value = nutriments!.getValue(entry.key, PerSize.oneHundredGrams);
+      if (value != null) {
+        statRows.add(buildStatRow(entry.key, value, entry.value));
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 2),
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 7,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildRow("Calories", calories, Colors.grey),
-          buildRow("Carbohydrates", carbs, Colors.redAccent),
-          buildRow("Sugars", sugars, Colors.red.shade300),
-          buildRow("Fat", fat, Colors.orange),
-          buildRow("Protein", protein, Colors.blueAccent),
-          buildRow("Fiber", fiber, Colors.green),
-          buildRow("Salt", salt, Colors.purple),
+          const Text(
+            "Nutrition Information (per 100g):",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          ...statRows,
         ],
       ),
     );

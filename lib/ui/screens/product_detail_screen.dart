@@ -56,12 +56,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     final nutriments = widget.product.nutriments;
     final data = {
+      'code': widget.product.barcode ?? '',
       'name': widget.product.productName ?? 'Unknown Product',
       'timestamp': FieldValue.serverTimestamp(),
-      'energyKCal':
-      nutriments?.getValue(Nutrient.energyKCal, PerSize.oneHundredGrams) ?? 0,
-      'sugars':
-      nutriments?.getValue(Nutrient.sugars, PerSize.oneHundredGrams) ?? 0,
+      'energyKCal': nutriments?.getValue(Nutrient.energyKCal, PerSize.oneHundredGrams) ?? 0.0,
+      'fat': nutriments?.getValue(Nutrient.fat, PerSize.oneHundredGrams) ?? 0.0,
+      'proteins': nutriments?.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0.0,
+      'sugars': nutriments?.getValue(Nutrient.sugars, PerSize.oneHundredGrams) ?? 0.0,
     };
 
     try {
@@ -85,27 +86,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<void> _handleToggleFavorite() async {
     final user = FirebaseAuth.instance.currentUser;
-    final barcode = widget.product.barcode;
 
-    if (user == null || barcode == null) {
+    final code = widget.product.barcode;
+    if (code == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Missing user or product info.')),
+        const SnackBar(content: Text('Missing product info.')),
       );
       return;
     }
 
     final favRef = FirebaseFirestore.instance
         .collection('users')
-        .doc(user.uid)
+        .doc(user?.uid)
         .collection('favorites')
-        .doc(barcode);
+        .doc(code);
 
     try {
       if (isFavorite) {
         await favRef.delete();
       } else {
         await favRef.set({
+          'productCode': code,
           'productName': widget.product.productName ?? '',
           'brand': widget.product.brands ?? '',
           'imageUrl': widget.product.imageFrontUrl ?? '',
@@ -166,17 +168,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       width: double.infinity,
                       color: Colors.grey[300],
                       alignment: Alignment.center,
-                      child: const Icon(Icons.fastfood,
-                          size: 60, color: Colors.white),
+                      child: const Icon(
+                          Icons.fastfood,
+                          size: 60,
+                          color: Colors.white
+                      ),
                     ),
                     Positioned(
                       top: 16,
                       right: 16,
                       child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
                           shape: BoxShape.circle,
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
                               blurRadius: 4,
@@ -185,11 +190,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         child: IconButton(
                           icon: Icon(
-                            isFavorite
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color:
-                            isFavorite ? Colors.red : Colors.grey.shade700,
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : Colors.black54,
                           ),
                           onPressed: _handleToggleFavorite,
                         ),
@@ -201,20 +203,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 20),
+                      horizontal: 20.0,
+                      vertical: 20.0
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         product.productName ?? "Unknown Product",
                         style: const TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         product.brands ?? "Unknown Brand",
                         style: const TextStyle(
-                            fontSize: 16, color: Colors.black54),
+                            fontSize: 16,
+                            color: Colors.black54
+                        ),
                       ),
                       const SizedBox(height: 24),
                       NutritionOverview(nutriments: product.nutriments),
@@ -222,21 +230,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const Text(
                         "Ingredients",
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         product.ingredientsText ?? "No ingredient info.",
                         style: const TextStyle(fontSize: 16),
                       ),
-                      const SizedBox(height: 75), // space for button
+                      const SizedBox(height: 75), // Space for bottom button
                     ],
                   ),
                 ),
               ),
             ],
           ),
-          // Fixed bottom button
           Positioned(
             bottom: 0,
             left: 0,
@@ -244,8 +253,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               decoration: BoxDecoration(
-                color:
-                Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.85),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
@@ -254,21 +262,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ],
               ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    minimumSize: const Size.fromHeight(50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
                   ),
-                ),
-                onPressed: _handleAddToTracker,
-                child: const Text(
-                  "Add to Tracker",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                  onPressed: _handleAddToTracker,
+                  child: const Text(
+                    "Add to Tracker",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                 ),
               ),
             ),

@@ -4,10 +4,10 @@ import 'package:reorderables/reorderables.dart';
 import 'package:sweet_balance/ui/screens/meals_screen.dart';
 import 'package:sweet_balance/ui/screens/profile_screen.dart';
 import 'package:sweet_balance/ui/screens/add_info_card_screen.dart';
+import 'package:sweet_balance/ui/screens/info_tracking_screen.dart';
 
 import '../widgets/collapsible_header.dart';
 import '../widgets/bottom_nav_menu.dart';
-import '../widgets/infoCards/carbohydrate_intake_info_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,16 +23,7 @@ class _HomePageState extends State<HomePage> {
   bool _isEditMode = false;
 
   final List<Widget> _infoCards = [
-    const CarbohydrateIntakeInfoCard(
-      dailyIntake: 150,
-      targetIntake: 200,
-      isEditMode: false,
-    ),
-    const CarbohydrateIntakeInfoCard(
-      dailyIntake: 150,
-      targetIntake: 200,
-      isEditMode: false,
-    ),
+    const SugarIntakeDetailScreen(),
   ];
 
   @override

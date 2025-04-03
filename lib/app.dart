@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sweet_balance/ui/screens/home_screen.dart';
 import 'package:sweet_balance/ui/screens/splash_screen.dart';
-import 'package:sweet_balance/ui/screens/welcome_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

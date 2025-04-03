@@ -88,14 +88,21 @@ class _SearchScreenState extends State<SearchScreen> {
         config,
       );
 
+      final filtered = result.products?.where((p) {
+        final n = p.nutriments;
+        return n?.getValue(Nutrient.energyKCal, PerSize.oneHundredGrams) != null ||
+            n?.getValue(Nutrient.sugars, PerSize.oneHundredGrams) != null ||
+            n?.getValue(Nutrient.fat, PerSize.oneHundredGrams) != null;
+      }).toList();
+
       setState(() {
-        _products = result.products ?? [];
+        _products = filtered ?? [];
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _isLoading = false;
         _hasError = true;
+        _isLoading = false;
       });
     }
   }
@@ -213,11 +220,14 @@ class _SearchScreenState extends State<SearchScreen> {
                 Container(
                   height: 180,
                   width: double.infinity,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.center,
-                      colors: [Colors.black54, Colors.transparent],
+                      colors: [
+                        Colors.black.withOpacity(0.5),
+                        Colors.transparent,
+                      ],
                     ),
                   ),
                 ),
