@@ -39,7 +39,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     super.initState();
 
-    // Start a timer to auto-slide the PageView
+    // start a timer to auto slide the icons carousel
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       if (_pageController.hasClients) {
         int nextPage = (_currentIndex + 1) % _carouselItems.length;
@@ -163,7 +163,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
             const Spacer(),
 
-            // Button Section
+            // button Section
             ElevatedButton(
               onPressed: () {
                 Navigator.push(

@@ -11,7 +11,7 @@ import '../widgets/multiStepForm/height_input_section.dart';
 import '../widgets/multiStepForm/date_picker_section.dart';
 import '../widgets/multiStepForm/register_section.dart';
 import '../widgets/multiStepForm/info_message.dart';
-import '../widgets/progress_indicator.dart';
+import '../widgets/multiStepForm/progress_indicator.dart';
 
 class MultiStepFormScreen extends StatefulWidget {
   final int initialStep;

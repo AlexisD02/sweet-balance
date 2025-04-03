@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../screens/carbohydrate_intake_screen.dart';
+import '../../screens/info_tracking_screen.dart';
 
 class CarbohydrateIntakeInfoCard extends StatelessWidget {
   final double dailyIntake;
@@ -151,7 +151,7 @@ class CarbohydrateIntakeInfoCard extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CarbohydrateIntakeDetailScreen(
+                        builder: (context) => const SugarIntakeDetailScreen(
                         ),
                       ),
                     );

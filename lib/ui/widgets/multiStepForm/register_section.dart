@@ -192,6 +192,7 @@ class RegisterStep extends StatelessWidget {
             return null;
           },
         ),
+
         const SizedBox(height: 20),
 
         Row(
@@ -205,44 +206,25 @@ class RegisterStep extends StatelessWidget {
               inactiveTrackColor: Colors.grey.shade300,
             ),
             const SizedBox(width: 10.0),
-            const Text("I agree to the "),
-            GestureDetector(
-              onTap: () {},
-              child: const Text(
-                "Terms of Service",
-                style: TextStyle(
-                  color: Colors.teal,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            const Text("I agree to Terms of Service"),
           ],
         ),
 
         Row(
           children: [
             Switch(
-              value: agreeToTerms,
-              onChanged: onAgreeToTermsChanged,
+              value: agreeToPrivacyPolicy,
+              onChanged: onAgreeToPrivacyPolicyChanged,
               activeColor: Colors.teal,
               activeTrackColor: Colors.teal.shade200,
               inactiveThumbColor: Colors.grey,
               inactiveTrackColor: Colors.grey.shade300,
             ),
             const SizedBox(width: 10.0),
-            const Text("I agree to the "),
-            GestureDetector(
-              onTap: () {},
-              child: const Text(
-                "Privacy Policy",
-                style: TextStyle(
-                  color: Colors.teal,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            const Text("I agree to Privacy Policy"),
           ],
         ),
+
         const SizedBox(height: 20.0),
 
         ElevatedButton(
@@ -263,6 +245,7 @@ class RegisterStep extends StatelessWidget {
             ),
           ),
         ),
+
         const SizedBox(height: 25),
 
         const Row(

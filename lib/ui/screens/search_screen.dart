@@ -227,12 +227,12 @@ class _SearchScreenState extends State<SearchScreen> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => ProductDetailScreen(product: product),
-                      //   ),
-                      // );
+                      Navigator.push(
+                         context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailScreen(product: product),
+                        ),
+                      );
                     },
                     child: const SizedBox(height: 180, width: double.infinity),
                   ),

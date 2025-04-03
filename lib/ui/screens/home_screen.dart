@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:reorderables/reorderables.dart';
+
 import 'package:sweet_balance/ui/screens/meals_screen.dart';
 import 'package:sweet_balance/ui/screens/profile_screen.dart';
 import 'package:sweet_balance/ui/screens/add_info_card_screen.dart';
 
 import '../widgets/collapsible_header.dart';
 import '../widgets/bottom_nav_menu.dart';
-import '../widgets/infoCards/blood_sugar_info_card.dart';
-import '../widgets/infoCards/insulin_calculator_info_card.dart';
 import '../widgets/infoCards/carbohydrate_intake_info_card.dart';
-import '../widgets/popup_menu.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,19 +23,6 @@ class _HomePageState extends State<HomePage> {
   bool _isEditMode = false;
 
   final List<Widget> _infoCards = [
-    const BloodSugarInfoCard(
-      currentBloodSugar: 120.5,
-      targetMin: 80,
-      targetMax: 140,
-      isEditMode: false,
-    ),
-    const InsulinCalculatorInfoCard(
-      insulinDose: 5.0,
-      carbIntake: 50,
-      insulinSensitivityFactor: 40,
-      targetBloodSugar: 100,
-      isEditMode: false,
-    ),
     const CarbohydrateIntakeInfoCard(
       dailyIntake: 150,
       targetIntake: 200,
@@ -87,7 +72,7 @@ class _HomePageState extends State<HomePage> {
         child: CustomScrollView(
           slivers: [
             CollapsibleHeader(
-              title: _isEditMode ? "Edit Home" : "APP Name",
+              title: _isEditMode ? "Edit Home" : "Sweet Balance",
               isEditMode: _isEditMode,
               onBackPressed: _toggleEditMode,
               actions: _isEditMode
@@ -107,8 +92,7 @@ class _HomePageState extends State<HomePage> {
                     size: 26.0,
                   ),
                 ),
-                const SizedBox(width: 2),
-                const PopupMenuWidget(),
+                const SizedBox(width: 10, height: 40),
               ],
             ),
             ReorderableSliverList(
@@ -116,24 +100,7 @@ class _HomePageState extends State<HomePage> {
               delegate: ReorderableSliverChildListDelegate(
                 _infoCards.map((card) {
                   final index = _infoCards.indexOf(card);
-                  if (card is BloodSugarInfoCard) {
-                    return BloodSugarInfoCard(
-                      currentBloodSugar: 120.5,
-                      targetMin: 80,
-                      targetMax: 140,
-                      isEditMode: _isEditMode,
-                      onRemove: _isEditMode ? () => _removeCard(index) : null,
-                    );
-                  } else if (card is InsulinCalculatorInfoCard) {
-                    return InsulinCalculatorInfoCard(
-                      insulinDose: 5.0,
-                      carbIntake: 50,
-                      insulinSensitivityFactor: 40,
-                      targetBloodSugar: 100,
-                      isEditMode: _isEditMode,
-                      onRemove: _isEditMode ? () => _removeCard(index) : null,
-                    );
-                  } else if (card is CarbohydrateIntakeInfoCard) {
+                  if (card is CarbohydrateIntakeInfoCard) {
                     return CarbohydrateIntakeInfoCard(
                       dailyIntake: 150,
                       targetIntake: 200,
@@ -157,24 +124,7 @@ class _HomePageState extends State<HomePage> {
       _isEditMode = !_isEditMode;
 
       for (int i = 0; i < _infoCards.length; i++) {
-        if (_infoCards[i] is BloodSugarInfoCard) {
-          _infoCards[i] = BloodSugarInfoCard(
-            currentBloodSugar: 120.5,
-            targetMin: 80,
-            targetMax: 140,
-            isEditMode: _isEditMode,
-            onRemove: _isEditMode ? () => _removeCard(i) : null,
-          );
-        } else if (_infoCards[i] is InsulinCalculatorInfoCard) {
-          _infoCards[i] = InsulinCalculatorInfoCard(
-            insulinDose: 5.0,
-            carbIntake: 50,
-            insulinSensitivityFactor: 40,
-            targetBloodSugar: 100,
-            isEditMode: _isEditMode,
-            onRemove: _isEditMode ? () => _removeCard(i) : null,
-          );
-        } else if (_infoCards[i] is CarbohydrateIntakeInfoCard) {
+        if (_infoCards[i] is CarbohydrateIntakeInfoCard) {
           _infoCards[i] = CarbohydrateIntakeInfoCard(
             dailyIntake: 150,
             targetIntake: 200,

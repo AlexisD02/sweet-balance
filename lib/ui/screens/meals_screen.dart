@@ -4,7 +4,6 @@ import 'package:sweet_balance/ui/widgets/plan_meals_section.dart';
 
 import '../widgets/collapsible_header.dart';
 import '../widgets/infoCards/recipes_info_card.dart';
-import '../widgets/popup_menu.dart';
 import '../widgets/quick_recipes_categories.dart';
 
 class MealsScreen extends StatefulWidget {
@@ -53,7 +52,7 @@ class _MealsScreenState extends State<MealsScreen> {
                   size: 26.0,
                 ),
               ),
-              const SizedBox(width: 13.0),
+              const SizedBox(width: 13.0, height: 40),
               GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
@@ -65,10 +64,10 @@ class _MealsScreenState extends State<MealsScreen> {
                 },
                 child: const Icon(
                   Icons.filter_list_outlined,
-                  size: 26.0,
+                  size: 30.0,
                 ),
               ),
-              const PopupMenuWidget(),
+              const SizedBox(width: 7.0),
             ],
           ),
           const SliverToBoxAdapter(

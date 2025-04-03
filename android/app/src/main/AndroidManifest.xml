@@ -1,11 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION" />
+        android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:label="sweet_balance"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
         <meta-data
-            android:name="com.google.android.gms.auth.api.signin.v2.request_email"
+            android:name="com.google.android.gms.aut    h.api.signin.v2.request_email"
             android:value="true" />
 
         <activity
