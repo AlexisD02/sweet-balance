@@ -13,6 +13,7 @@ class AccountInfoCard extends StatelessWidget {
   final String userHeight;
   final String userWeight;
   final String avatarUrl;
+  final void Function()? onRefresh;
 
   const AccountInfoCard({
     super.key,
@@ -25,6 +26,7 @@ class AccountInfoCard extends StatelessWidget {
     required this.userHeight,
     required this.userWeight,
     required this.avatarUrl,
+    this.onRefresh,
   });
 
   Widget _buildInfoRow(IconData icon, String value) {
@@ -96,8 +98,8 @@ class AccountInfoCard extends StatelessWidget {
                         bottom: 0,
                         right: 0,
                         child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            final shouldRefresh = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => EditProfileScreen(
@@ -111,6 +113,10 @@ class AccountInfoCard extends StatelessWidget {
                                 ),
                               ),
                             );
+
+                            if (shouldRefresh == true && onRefresh != null) {
+                              onRefresh!(); // trigger parent to reload data
+                            }
                           },
                           child: Container(
                             decoration: BoxDecoration(

@@ -9,7 +9,7 @@
         android:icon="@mipmap/ic_launcher">
 
         <meta-data
-            android:name="com.google.android.gms.aut    h.api.signin.v2.request_email"
+            android:name="com.google.android.gms.auth.api.signin.v2.request_email"
             android:value="true" />
 
         <activity

@@ -105,6 +105,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 20),
 
                       Text(
@@ -116,6 +117,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                         textAlign: TextAlign.center,
                       ),
+
                       const SizedBox(height: 10),
 
                       Padding(
@@ -192,9 +194,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 10),
 
-            // Sign In Link
+            // sign in link
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

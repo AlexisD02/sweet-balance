@@ -118,6 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 userHeight: _userData?['height']?.toString() ?? 'N/A',
                 userWeight: _userData?['weight']?.toString() ?? 'N/A',
                 avatarUrl: _userData?['avatarUrl'] ?? '',
+                onRefresh: _loadUserData,
               ),
             ),
           ),

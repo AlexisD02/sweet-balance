@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
+
 import 'package:sweet_balance/ui/screens/search_screen.dart';
 import 'package:sweet_balance/ui/widgets/plan_meals_section.dart';
 
@@ -30,6 +32,48 @@ class _MealsScreenState extends State<MealsScreen> {
     super.dispose();
   }
 
+  Future<List<Product>> fetchProducts({
+    required SortOption sortOption,
+    int pageSize = 5,
+  }) async {
+    final config = ProductSearchQueryConfiguration(
+      version: ProductQueryVersion.v3,
+      language: OpenFoodFactsLanguage.ENGLISH,
+      parametersList: [
+        PageSize(size: pageSize),
+        SortBy(option: sortOption),
+      ],
+      fields: [
+        ProductField.NAME,
+        ProductField.BRANDS,
+        ProductField.IMAGE_FRONT_URL,
+      ],
+    );
+
+    final result = await OpenFoodAPIClient.searchProducts(
+      const User(userId: '0', password: ''),
+      config,
+    );
+
+    return result.products ?? [];
+  }
+
+  Widget buildProductSection(String title, SortOption sortOption) {
+    return SliverToBoxAdapter(
+      child: FutureBuilder<List<Product>>(
+        future: fetchProducts(sortOption: sortOption),
+        builder: (context, snapshot) {
+          return RecipesInfoCard(
+            title: title,
+            products: snapshot.data ?? [],
+            isLoading: snapshot.connectionState == ConnectionState.waiting,
+            sortOption: sortOption,
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -47,45 +91,31 @@ class _MealsScreenState extends State<MealsScreen> {
                     MaterialPageRoute(builder: (context) => const SearchScreen()),
                   );
                 },
-                child: const Icon(
-                  Icons.search_outlined,
-                  size: 26.0,
-                ),
+                child: const Icon(Icons.search_outlined, size: 26.0),
               ),
-              const SizedBox(width: 13.0, height: 40),
+              const SizedBox(width: 13.0),
               GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
                     context: context,
-                    builder: (BuildContext context) {
-                      return const Placeholder();
-                    },
+                    builder: (context) => const Placeholder(),
                   );
                 },
-                child: const Icon(
-                  Icons.filter_list_outlined,
-                  size: 30.0,
-                ),
+                child: const Icon(Icons.filter_list_outlined, size: 30.0),
               ),
               const SizedBox(width: 7.0),
             ],
           ),
-          const SliverToBoxAdapter(
-            child: PlanMealsCardInfo(),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 5),
-          ),
+
+          const SliverToBoxAdapter(child: PlanMealsCardInfo()),
+          const SliverToBoxAdapter(child: SizedBox(height: 5)),
 
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
               child: Text(
                 'Quick Recipes',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -95,53 +125,21 @@ class _MealsScreenState extends State<MealsScreen> {
               child: QuickRecipesCategories(),
             ),
           ),
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 5),
-          ),
-
+          const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
               child: Text(
-                'Premium Recipes',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Premium Products',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          const SliverToBoxAdapter(
-            child: RecipesInfoCard(
-              title: 'Newest Recipes',
-              items: [
-                {'title': 'Pasta'},
-                {'title': 'Salad'},
-                {'title': 'Burger'},
-              ],
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: RecipesInfoCard(
-              title: 'Trending Recipes',
-              items: [
-                {'title': 'Pizza'},
-                {'title': 'Sushi'},
-                {'title': 'Tacos'},
-              ],
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: RecipesInfoCard(
-              title: 'Budget-Friendly Recipes',
-              items: [
-                {'title': 'Sandwich'},
-                {'title': 'Soup'},
-                {'title': 'Rice Bowl'},
-              ],
-            ),
-          ),
+
+          buildProductSection('Newest Products', SortOption.CREATED),
+          buildProductSection('Popular Products', SortOption.POPULARITY),
+          buildProductSection('Eco-Friendly Products', SortOption.ECOSCORE),
         ],
       ),
     );

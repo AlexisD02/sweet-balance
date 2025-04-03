@@ -1,4 +1,7 @@
 import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -32,16 +35,60 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
 
-  Widget _buildField(String label, String initialValue) {
+  late TextEditingController _nameController;
+  late TextEditingController _genderController;
+  late TextEditingController _heightController;
+  late TextEditingController _weightController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.userName);
+    _genderController = TextEditingController(text: widget.userGender);
+    _heightController = TextEditingController(text: widget.userHeight);
+    _weightController = TextEditingController(text: widget.userWeight);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _genderController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'firstName': _nameController.text.trim(),
+        'gender': _genderController.text.trim(),
+        'height': double.tryParse(_heightController.text.trim()) ?? 0.0,
+        'weight': double.tryParse(_weightController.text.trim()) ?? 0.0,
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully')),
+      );
+      Navigator.pop(context, true); // go back
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
+    }
+  }
+
+  Widget _buildField(String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0)),
         TextField(
-          controller: TextEditingController(text: initialValue),
+          controller: controller,
           decoration: const InputDecoration(
             border: UnderlineInputBorder(),
             enabledBorder: UnderlineInputBorder(
@@ -50,6 +97,90 @@ class EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAvatarSection() {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      decoration: _boxDecoration(),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 110,
+            backgroundImage: _selectedImage != null
+                ? FileImage(_selectedImage!)
+                : NetworkImage(widget.avatarUrl) as ImageProvider,
+            backgroundColor: Colors.grey[200],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _openGallery,
+                icon: const Icon(Icons.photo, color: Colors.black),
+                label: const Text("Gallery", style: TextStyle(color: Colors.black)),
+                style: _buttonStyle(),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
+                onPressed: _openCamera,
+                icon: const Icon(Icons.camera, color: Colors.black),
+                label: const Text("Camera", style: TextStyle(color: Colors.black)),
+                style: _buttonStyle(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableFields() {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      decoration: _boxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Email",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.userEmail,
+            style: const TextStyle(fontSize: 16.0, color: Colors.black87),
+          ),
+          const SizedBox(height: 20),
+
+          const Text(
+            "Date of Birth",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.userDOB,
+            style: const TextStyle(fontSize: 16.0, color: Colors.black87),
+          ),
+
+          const SizedBox(height: 15),
+          const Divider(thickness: 2.5, color: Colors.black),
+          const SizedBox(height: 15),
+
+          _buildField("Name", _nameController),
+          const SizedBox(height: 20),
+
+          _buildField("Gender", _genderController),
+          const SizedBox(height: 20),
+
+          _buildField("Height (cm)", _heightController),
+          const SizedBox(height: 20),
+
+          _buildField("Weight (kg)", _weightController),
+        ],
+      ),
     );
   }
 
@@ -108,85 +239,18 @@ class EditProfileScreenState extends State<EditProfileScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 10),
-
-                  // Avatar + Buttons
-                  Container(
-                    padding: const EdgeInsets.all(20.0),
-                    decoration: _boxDecoration(),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 110,
-                          backgroundImage: _selectedImage != null
-                              ? FileImage(_selectedImage!)
-                              : (widget.avatarUrl.isNotEmpty
-                              ? NetworkImage(widget.avatarUrl)
-                              : null) as ImageProvider?,
-                          backgroundColor: Colors.grey[200],
-                          child: (widget.avatarUrl.isEmpty && _selectedImage == null)
-                              ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                              : null,
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: _openGallery,
-                              icon: const Icon(Icons.photo, color: Colors.black),
-                              label: const Text("Gallery", style: TextStyle(color: Colors.black)),
-                              style: _buttonStyle(),
-                            ),
-                            const SizedBox(width: 10),
-                            ElevatedButton.icon(
-                              onPressed: _openCamera,
-                              icon: const Icon(Icons.camera, color: Colors.black),
-                              label: const Text("Camera", style: TextStyle(color: Colors.black)),
-                              style: _buttonStyle(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
+                  _buildAvatarSection(),
                   const SizedBox(height: 20),
-
-                  // Editable Fields
-                  Container(
-                    padding: const EdgeInsets.all(20.0),
-                    decoration: _boxDecoration(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildField("Name", widget.userName),
-                        const SizedBox(height: 20),
-                        _buildField("Email", widget.userEmail),
-                        const SizedBox(height: 20),
-                        _buildField("Gender", widget.userGender),
-                        const SizedBox(height: 20),
-                        _buildField("Date of Birth", widget.userDOB),
-                        const SizedBox(height: 20),
-                        _buildField("Height (cm)", widget.userHeight),
-                        const SizedBox(height: 20),
-                        _buildField("Weight (kg)", widget.userWeight),
-                      ],
-                    ),
-                  ),
+                  _buildEditableFields(),
                 ],
               ),
             ),
           ),
           BottomActionButtons(
             onCancel: () => Navigator.pop(context),
-            onSave: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Save Pressed')),
-              );
-            },
+            onSave: _saveProfile,
           ),
         ],
       ),

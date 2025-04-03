@@ -6,7 +6,12 @@ import 'package:sweet_balance/ui/screens/product_detail_screen.dart';
 import '../widgets/search_field.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final SortOption initialSort;
+
+  const SearchScreen({
+    super.key,
+    this.initialSort = SortOption.POPULARITY,
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -19,9 +24,12 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _hasError = false;
   Timer? _debounce;
 
+  SortOption _sortOption = SortOption.POPULARITY;
+
   @override
   void initState() {
     super.initState();
+    _sortOption = widget.initialSort;
     fetchPopularProducts();
   }
 
@@ -29,6 +37,15 @@ class _SearchScreenState extends State<SearchScreen> {
   void dispose() {
     _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onSortOptionChanged(SortOption selected) {
+    setState(() => _sortOption = selected);
+    if (_searchQuery.trim().isNotEmpty) {
+      searchProducts(_searchQuery);
+    } else {
+      fetchPopularProducts();
+    }
   }
 
   @override
@@ -46,7 +63,7 @@ class _SearchScreenState extends State<SearchScreen> {
             });
 
             _debounce?.cancel();
-            _debounce = Timer(const Duration(milliseconds: 1500), () {
+            _debounce = Timer(const Duration(milliseconds: 800), () {
               if (_searchQuery.trim().isNotEmpty) {
                 searchProducts(_searchQuery);
               } else {
@@ -54,19 +71,24 @@ class _SearchScreenState extends State<SearchScreen> {
               }
             });
           },
+          onSortChanged: _onSortOptionChanged,
         ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _hasError
           ? const Center(
-        child: Text("An error occurred. Please try again.",
-            style: TextStyle(color: Colors.red)),
+        child: Text(
+          "An error occurred. Please try again.",
+          style: TextStyle(color: Colors.red),
+        ),
       )
           : _products.isEmpty
           ? const Center(
-        child: Text("No results found.",
-            style: TextStyle(color: Colors.black54)),
+        child: Text(
+          "No results found.",
+          style: TextStyle(color: Colors.black54),
+        ),
       )
           : _buildProductList(),
     );
@@ -82,9 +104,9 @@ class _SearchScreenState extends State<SearchScreen> {
       final config = ProductSearchQueryConfiguration(
         version: ProductQueryVersion.v3,
         language: OpenFoodFactsLanguage.ENGLISH,
-        parametersList: const [
-          PageSize(size: 20),
-          SortBy(option: SortOption.POPULARITY),
+        parametersList: [
+          const PageSize(size: 20),
+          SortBy(option: _sortOption),
         ],
         fields: [
           ProductField.NAME,
@@ -98,9 +120,8 @@ class _SearchScreenState extends State<SearchScreen> {
         config,
       );
 
-      final popular = result.products ?? [];
       setState(() {
-        _products = popular;
+        _products = result.products ?? [];
         _isLoading = false;
       });
     } catch (e) {
@@ -124,7 +145,7 @@ class _SearchScreenState extends State<SearchScreen> {
         parametersList: [
           SearchTerms(terms: [query]),
           const PageSize(size: 20),
-          const SortBy(option: SortOption.POPULARITY),
+          SortBy(option: _sortOption),
         ],
         fields: [
           ProductField.NAME,
@@ -140,9 +161,8 @@ class _SearchScreenState extends State<SearchScreen> {
         config,
       );
 
-      final searchResults = result.products ?? [];
       setState(() {
-        _products = searchResults;
+        _products = result.products ?? [];
         _isLoading = false;
       });
     } catch (e) {
@@ -182,14 +202,13 @@ class _SearchScreenState extends State<SearchScreen> {
                 Container(
                   height: 180,
                   width: double.infinity,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.center,
                       colors: [
-                        Colors.black.withOpacity(0.5),
-                        Colors.transparent,
-                      ],
+                        Colors.black54,
+                          Colors.transparent],
                     ),
                   ),
                 ),
@@ -228,7 +247,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: InkWell(
                     onTap: () {
                       Navigator.push(
-                         context,
+                        context,
                         MaterialPageRoute(
                           builder: (context) => ProductDetailScreen(product: product),
                         ),
