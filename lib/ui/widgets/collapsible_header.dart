@@ -42,7 +42,7 @@ class CollapsibleHeader extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 30.0,
-                      color: Colors.black.withOpacity(collapseRatioBT),
+                      color: Colors.black.withValues(alpha: collapseRatioBT),
                     ),
                   ),
                 ),

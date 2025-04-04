@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../screens/favourites_screen.dart';
+
 class PlanMealsCardInfo extends StatelessWidget {
   const PlanMealsCardInfo({super.key});
 
@@ -24,39 +26,49 @@ class PlanMealsCardInfo extends StatelessWidget {
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
-                return Container(
-                  width: 110,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.0),
-                    color: item['color']!.withOpacity(0.1),
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Icon(
-                          item['icon'],
-                          size: 32,
-                          color: item['color'],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 10,
-                        left: 10,
-                        right: 10,
-                        child: Text(
-                          item['title']!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                return GestureDetector(
+                  onTap: () {
+                    if (item['title'] == 'My Favourites') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FavouritesScreen()),
+                      );
+                    }
+                  },
+                  child: Container(
+                    width: 110,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16.0),
+                      color: item['color']!.withOpacity(0.1),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: Icon(
+                            item['icon'],
+                            size: 32,
+                            color: item['color'],
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          bottom: 10,
+                          left: 10,
+                          right: 10,
+                          child: Text(
+                            item['title']!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

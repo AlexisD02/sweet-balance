@@ -71,10 +71,11 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       });
 
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),
       );
-      Navigator.pop(context, true); // go back
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update profile: $e')),
@@ -86,7 +87,13 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0)),
+        Text(
+            label,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0
+            )
+        ),
         TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -120,14 +127,20 @@ class EditProfileScreenState extends State<EditProfileScreen> {
               ElevatedButton.icon(
                 onPressed: _openGallery,
                 icon: const Icon(Icons.photo, color: Colors.black),
-                label: const Text("Gallery", style: TextStyle(color: Colors.black)),
+                label: const Text(
+                    "Gallery",
+                    style: TextStyle(color: Colors.black)
+                ),
                 style: _buttonStyle(),
               ),
               const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: _openCamera,
                 icon: const Icon(Icons.camera, color: Colors.black),
-                label: const Text("Camera", style: TextStyle(color: Colors.black)),
+                label: const Text(
+                    "Camera",
+                    style: TextStyle(color: Colors.black)
+                ),
                 style: _buttonStyle(),
               ),
             ],
@@ -148,34 +161,44 @@ class EditProfileScreenState extends State<EditProfileScreen> {
             "Email",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
           ),
+
           const SizedBox(height: 8),
+
           Text(
             widget.userEmail,
             style: const TextStyle(fontSize: 16.0, color: Colors.black87),
           ),
+
           const SizedBox(height: 20),
 
           const Text(
             "Date of Birth",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
           ),
+
           const SizedBox(height: 8),
+
           Text(
             widget.userDOB,
             style: const TextStyle(fontSize: 16.0, color: Colors.black87),
           ),
 
           const SizedBox(height: 15),
+
           const Divider(thickness: 2.5, color: Colors.black),
+
           const SizedBox(height: 15),
 
           _buildField("Name", _nameController),
+
           const SizedBox(height: 20),
 
           _buildField("Gender", _genderController),
+
           const SizedBox(height: 20),
 
           _buildField("Height (cm)", _heightController),
+
           const SizedBox(height: 20),
 
           _buildField("Weight (kg)", _weightController),

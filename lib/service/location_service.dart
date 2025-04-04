@@ -2,7 +2,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
 class LocationService {
-  // find user's country based on their current location.
   static Future<String?> detectUserCountry() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -12,13 +11,10 @@ class LocationService {
       throw Exception('Location services are disabled.');
     }
 
-    // checking for permission
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      // in case of denied permission, do request once
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // in case repeated denied permission, throw exception
         throw Exception('Location permission denied.');
       }
     }
@@ -27,7 +23,6 @@ class LocationService {
       throw Exception('Location permission permanently denied, we cannot request permissions.');
     }
 
-    // get latitude and longitute coords
     final position = await Geolocator.getCurrentPosition();
     final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
 

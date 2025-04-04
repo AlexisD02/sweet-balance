@@ -15,15 +15,15 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  bool isFavorite = false;
+  bool isFavourite = false;
 
   @override
   void initState() {
     super.initState();
-    _checkFavoriteStatus();
+    _checkFavouriteStatus();
   }
 
-  Future<void> _checkFavoriteStatus() async {
+  Future<void> _checkFavouriteStatus() async {
     final user = FirebaseAuth.instance.currentUser;
     final barcode = widget.product.barcode;
 
@@ -38,7 +38,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     if (mounted) {
       setState(() {
-        isFavorite = doc.exists;
+        isFavourite = doc.exists;
       });
     }
   }
@@ -87,8 +87,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _handleToggleFavorite() async {
     final user = FirebaseAuth.instance.currentUser;
 
-    final code = widget.product.barcode;
-    if (code == null) {
+    final productName = widget.product.productName;
+    if (productName == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Missing product info.')),
@@ -100,14 +100,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         .collection('users')
         .doc(user?.uid)
         .collection('favorites')
-        .doc(code);
+        .doc(productName);
 
     try {
-      if (isFavorite) {
+      if (isFavourite) {
         await favRef.delete();
       } else {
         await favRef.set({
-          'productCode': code,
+          'productCode': productName,
           'productName': widget.product.productName ?? '',
           'brand': widget.product.brands ?? '',
           'imageUrl': widget.product.imageFrontUrl ?? '',
@@ -117,13 +117,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
       if (!mounted) return;
       setState(() {
-        isFavorite = !isFavorite;
+        isFavourite = !isFavourite;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isFavorite ? 'Added to Favorites!' : 'Removed from Favorites.',
+            isFavourite ? 'Added to Favorites!' : 'Removed from Favorites.',
           ),
         ),
       );
@@ -179,7 +179,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       right: 16,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                           boxShadow: const [
                             BoxShadow(
@@ -190,8 +190,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         child: IconButton(
                           icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.black54,
+                            isFavourite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavourite ? Colors.red : Colors.black54,
                           ),
                           onPressed: _handleToggleFavorite,
                         ),
@@ -239,7 +239,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         product.ingredientsText ?? "No ingredient info.",
                         style: const TextStyle(fontSize: 16),
                       ),
-                      const SizedBox(height: 75), // Space for bottom button
+                      const SizedBox(height: 75),
                     ],
                   ),
                 ),
@@ -253,7 +253,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.85),
+                color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.85),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,

@@ -6,7 +6,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // handle login with email and password
   Future<(User?, String?)> handleEmailLogin({
     required String email,
     required String password,
@@ -17,6 +16,7 @@ class AuthService {
         password: password,
       );
       log("Email login successful");
+
       return (credential.user, null);
     } on FirebaseAuthException catch (e) {
       return (null, AuthException.messageForCode(e.code));
@@ -25,7 +25,6 @@ class AuthService {
     }
   }
 
-  // handle google sign-in
   Future<(User?, String?)> handleGoogleLogin() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -40,19 +39,20 @@ class AuthService {
 
       final userCredential = await _auth.signInWithCredential(credential);
       log("Google sign in successful");
+
       return (userCredential.user, null);
     } catch (_) {
       return (null, 'Google sign-in failed.');
     }
   }
 
-  /// Alternative: Throws structured exception instead of returning message tuple
   Future<User?> signInWithEmail(String email, String password) async {
     try {
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
       return credential.user;
     } on FirebaseAuthException catch (e) {
       throw AuthException(code: e.code);
@@ -61,7 +61,6 @@ class AuthService {
     }
   }
 
-  // alternative: throws on error
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -75,23 +74,21 @@ class AuthService {
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
+
       return userCredential.user;
     } catch (_) {
       throw AuthException(code: 'google-failed');
     }
   }
 
-  // sign out user
   Future<void> signOut() async {
     await _auth.signOut();
     await _googleSignIn.signOut();
   }
 
-  // return currently signed-in user
   User? getCurrentUser() => _auth.currentUser;
 }
 
-// reusable auth exception (for throwing)
 class AuthException implements Exception {
   final String code;
 

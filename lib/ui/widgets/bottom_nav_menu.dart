@@ -19,7 +19,7 @@ class BottomNavMenu extends StatelessWidget {
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.black.withOpacity(0.6),
+      unselectedItemColor: Colors.black.withValues(alpha: 0.6),
       selectedFontSize: 12.0,
       unselectedFontSize: 12.0,
       iconSize: 26.0,

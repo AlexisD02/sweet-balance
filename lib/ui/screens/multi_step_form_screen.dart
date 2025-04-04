@@ -19,10 +19,10 @@ class MultiStepFormScreen extends StatefulWidget {
   const MultiStepFormScreen({this.initialStep = 1, super.key});
 
   @override
-  _MultiStepFormScreenState createState() => _MultiStepFormScreenState();
+  MultiStepFormScreenState createState() => MultiStepFormScreenState();
 }
 
-class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
+class MultiStepFormScreenState extends State<MultiStepFormScreen> {
   final TextEditingController weightController = TextEditingController();
   final TextEditingController otherGenderController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
@@ -165,7 +165,6 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
         try {
           final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
           if (googleUser == null) {
-            // User canceled the sign-in
             return;
           }
 
@@ -176,7 +175,6 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
             idToken: googleAuth.idToken,
           );
 
-          // Sign in to Firebase with the Google credentials
           final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
           final uid = userCredential.user?.uid;
@@ -185,12 +183,10 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
 
           if (!mounted) return;
 
-          // Check if user data exists in Firestore
           final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
           final doc = await docRef.get();
 
           if (!doc.exists) {
-            // New user, store default profile
             await docRef.set({
               'firstName': displayName,
               'email': email,
@@ -275,6 +271,7 @@ class _MultiStepFormScreenState extends State<MultiStepFormScreen> {
         }
       },
       child: Scaffold(
+        key: const Key('multiStepFormScreen'),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: true,
         appBar: AppBar(

@@ -52,12 +52,12 @@ class DatePickerSection extends StatelessWidget {
                 scale: 1.06,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white, // Set the background color
+                    color: Colors.white,
                     border: Border.all(
                       color: Colors.grey[400]!,
                       width: 1,
                     ),
-                    borderRadius: BorderRadius.circular(16), // Adjust the radius as needed
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: DatePickerWidget(
                     looping: true,
@@ -71,7 +71,7 @@ class DatePickerSection extends StatelessWidget {
                       state.didChange(newDate);
                     },
                     pickerTheme: const DateTimePickerTheme(
-                      backgroundColor: Colors.transparent, // Ensure transparency to show the container's decoration
+                      backgroundColor: Colors.transparent,
                       itemTextStyle: TextStyle(fontSize: 20.0),
                     ),
                   ),

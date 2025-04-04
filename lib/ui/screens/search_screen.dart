@@ -6,10 +6,12 @@ import 'product_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final SortOption initialSort;
+  final String? initialCategoryFilter;
 
   const SearchScreen({
     super.key,
     this.initialSort = SortOption.POPULARITY,
+    this.initialCategoryFilter,
   });
 
   @override
@@ -29,6 +31,9 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _sortOption = widget.initialSort;
+    if (widget.initialCategoryFilter != null) {
+      _selectedCategories = [widget.initialCategoryFilter!];
+    }
     _fetchProducts();
   }
 
@@ -119,6 +124,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
@@ -127,37 +133,79 @@ class _SearchScreenState extends State<SearchScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              padding: MediaQuery.of(context).viewInsets,
+              child: Stack(
                 children: [
-                  const Text(
-                    'Filter by Category',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Filter by Category',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        ...allCategories.map((category) {
+                          final capitalized = category[0].toUpperCase() + category.substring(1).replaceAll('-', ' ');
+                          return CheckboxListTile(
+                            value: tempSelected.contains(category),
+                            title: Text(capitalized),
+                            onChanged: (bool? checked) {
+                              setModalState(() {
+                                if (checked == true) {
+                                  tempSelected.add(category);
+                                } else {
+                                  tempSelected.remove(category);
+                                }
+                              });
+                            },
+                          );
+                        }),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  ...allCategories.map((category) {
-                    return CheckboxListTile(
-                      value: tempSelected.contains(category),
-                      title: Text(category.replaceAll('-', ' ').toUpperCase()),
-                      onChanged: (bool? checked) {
-                        setModalState(() {
-                          if (checked == true) {
-                            tempSelected.add(category);
-                          } else {
-                            tempSelected.remove(category);
-                          }
-                        });
-                      },
-                    );
-                  }),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _onCategoryChanged(tempSelected);
-                    },
-                    child: const Text('Apply Filter'),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: Offset(0, -2),
+                          ),
+                        ],
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _onCategoryChanged(tempSelected);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            minimumSize: const Size.fromHeight(50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: const Text(
+                            'Apply Filter',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -225,7 +273,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       begin: Alignment.bottomCenter,
                       end: Alignment.center,
                       colors: [
-                        Colors.black.withOpacity(0.5),
+                        Colors.black.withValues(alpha: 0.5),
                         Colors.transparent,
                       ],
                     ),

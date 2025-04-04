@@ -115,7 +115,7 @@ class AccountInfoCard extends StatelessWidget {
                             );
 
                             if (shouldRefresh == true && onRefresh != null) {
-                              onRefresh!(); // trigger parent to reload data
+                              onRefresh!();
                             }
                           },
                           child: Container(

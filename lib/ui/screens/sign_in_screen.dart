@@ -54,6 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('signInScreen'),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(backgroundColor: Theme.of(context).scaffoldBackgroundColor),
       body: SingleChildScrollView(

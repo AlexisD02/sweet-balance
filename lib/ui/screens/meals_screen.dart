@@ -6,7 +6,7 @@ import 'package:sweet_balance/ui/widgets/plan_meals_section.dart';
 
 import '../widgets/collapsible_header.dart';
 import '../widgets/infoCards/recipes_info_card.dart';
-import '../widgets/quick_recipes_categories.dart';
+import '../widgets/quick_product_categories.dart';
 
 class MealsScreen extends StatefulWidget {
   const MealsScreen({super.key});
@@ -24,12 +24,6 @@ class _MealsScreenState extends State<MealsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.jumpTo(250.0);
     });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   Future<List<Product>> fetchProducts({
@@ -91,22 +85,11 @@ class _MealsScreenState extends State<MealsScreen> {
                     MaterialPageRoute(builder: (context) => const SearchScreen()),
                   );
                 },
-                child: const Icon(Icons.search_outlined, size: 26.0),
+                child: const Icon(Icons.search_outlined, size: 28.0),
               ),
-              const SizedBox(width: 13.0),
-              GestureDetector(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) => const Placeholder(),
-                  );
-                },
-                child: const Icon(Icons.filter_list_outlined, size: 30.0),
-              ),
-              const SizedBox(width: 7.0),
+              const SizedBox(width: 13.0, height: 45.0),
             ],
           ),
-
           const SliverToBoxAdapter(child: PlanMealsCardInfo()),
           const SliverToBoxAdapter(child: SizedBox(height: 5)),
 
@@ -114,17 +97,19 @@ class _MealsScreenState extends State<MealsScreen> {
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
               child: Text(
-                'Quick Recipes',
+                'Quick Filter Products',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
           ),
+
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.only(left: 10.0),
               child: QuickRecipesCategories(),
             ),
           ),
+
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
           const SliverToBoxAdapter(

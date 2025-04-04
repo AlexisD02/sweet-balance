@@ -85,7 +85,7 @@ class ActivitySelector extends StatelessWidget {
                 trackHeight: 4.0,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0),
                 thumbColor: Colors.teal,
-                overlayColor: Colors.teal.withOpacity(0.2),
+                overlayColor: Colors.teal.withValues(alpha: 0.2),
                 overlayShape: const RoundSliderOverlayShape(overlayRadius: 18.0),
                 valueIndicatorColor: Colors.teal,
               ),

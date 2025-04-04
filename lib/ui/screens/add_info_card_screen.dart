@@ -44,11 +44,10 @@ class _AddInfoCardState extends State<AddInfoCard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[200],
-        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -95,9 +94,13 @@ class _AddInfoCardState extends State<AddInfoCard> {
             child: SingleChildScrollView(
               child: Container(
                 margin: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 12.0),
+                    vertical: 16.0,
+                    horizontal: 12.0
+                ),
                 padding: const EdgeInsets.symmetric(
-                    vertical: 8.0, horizontal: 12.0),
+                    vertical: 8.0,
+                    horizontal: 12.0
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25.0),
