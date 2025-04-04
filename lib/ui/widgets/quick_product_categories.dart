@@ -3,8 +3,8 @@ import 'package:openfoodfacts/openfoodfacts.dart';
 
 import 'package:sweet_balance/ui/screens/search_screen.dart';
 
-class QuickRecipesCategories extends StatelessWidget {
-  const QuickRecipesCategories({super.key});
+class QuickProductsCategories extends StatelessWidget {
+  const QuickProductsCategories({super.key});
 
   static const List<Map<String, dynamic>> categories = [
     {'title': 'Drinks', 'icon': Icons.local_drink, 'color': Colors.teal, 'tag': 'drinks'},

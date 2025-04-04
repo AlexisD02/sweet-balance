@@ -109,7 +109,6 @@ class _SugarIntakeDetailScreenState extends State<SugarIntakeDetailScreen> {
       appBar: AppBar(
         title: const Text('Sugar Intake Details'),
         backgroundColor: Colors.grey[100],
-        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

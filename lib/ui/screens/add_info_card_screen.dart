@@ -1,45 +1,54 @@
 import 'package:flutter/material.dart';
-
 import '../widgets/bottom_action_buttons.dart';
 
 class AddInfoCard extends StatefulWidget {
-  const AddInfoCard({super.key});
+  final List<String> removedKeys;
+
+  const AddInfoCard({super.key, required this.removedKeys});
 
   @override
   State<AddInfoCard> createState() => _AddInfoCardState();
 }
 
 class _AddInfoCardState extends State<AddInfoCard> {
-  final Map<String, bool> _infoCardOptions = {
-    "Info Card 1": false,
-    "Info Card 2": false,
-    "Info Card 3": false,
-    "Info Card 4": false,
-    "Info Card 5": false,
-    "Info Card 6": false,
-    "Info Card 7": false,
-    "Info Card 8": false,
-    "Info Card 9": false,
-    "Info Card 10": false,
-    "Info Card 11": false,
-    "Info Card 12": false,
-    "Info Card 13": false,
-    "Info Card 14": false,
-    "Info Card 15": false,
-    "Info Card 16": false,
-  };
+  final Map<String, bool> _selectionMap = {};
 
   bool _selectAll = false;
+
+  @override
+  void initState() {
+    super.initState();
+    for (final key in widget.removedKeys) {
+      _selectionMap[key] = false;
+    }
+  }
+
+  int get _selectedCount =>
+      _selectionMap.values.where((selected) => selected).length;
 
   void _toggleSelectAll() {
     setState(() {
       _selectAll = !_selectAll;
-      _infoCardOptions.updateAll((key, value) => _selectAll);
+      for (final key in _selectionMap.keys) {
+        _selectionMap[key] = _selectAll;
+      }
     });
   }
 
-  int get _selectedCount =>
-      _infoCardOptions.values.where((isSelected) => isSelected).length;
+  String _getCardLabel(String key) {
+    switch (key) {
+      case 'sugar':
+        return 'Sugar Intake';
+      case 'fat':
+        return 'Fat Intake';
+      case 'proteins':
+        return 'Protein Intake';
+      case 'energy':
+        return 'Calories';
+      default:
+        return key;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +76,8 @@ class _AddInfoCardState extends State<AddInfoCard> {
                     ),
                   ),
                   const SizedBox(height: 2.0),
-                  const Text(
-                    "All",
-                    style: TextStyle(fontSize: 12.0, color: Colors.black),
-                  ),
+                  const Text("All",
+                      style: TextStyle(fontSize: 12.0, color: Colors.black)),
                 ],
               ),
               const SizedBox(width: 20.0),
@@ -79,110 +86,108 @@ class _AddInfoCardState extends State<AddInfoCard> {
                     ? "$_selectedCount selected"
                     : "Choose what to add",
                 style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                    color: Colors.black,
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Container(
-                margin: const EdgeInsets.symmetric(
-                    vertical: 16.0,
-                    horizontal: 12.0
+        body: Column(
+          children: [
+            if (_selectionMap.isEmpty)
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    "Nothing to add.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 12.0
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ..._infoCardOptions.keys.map((cardName) {
-                      final index =
-                      _infoCardOptions.keys.toList().indexOf(cardName);
-                      return Column(
-                        children: [
-                          ListTile(
-                            contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 8.0),
-                            leading: GestureDetector(
+              )
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25.0),
+                    ),
+                    child: Column(
+                      children: _selectionMap.entries.map((entry) {
+                        final key = entry.key;
+                        final selected = entry.value;
+                        final index =
+                        _selectionMap.keys.toList().indexOf(entry.key);
+
+                        return Column(
+                          children: [
+                            ListTile(
+                              contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 8.0),
+                              leading: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectionMap[key] = !selected;
+                                    _selectAll = _selectionMap.values
+                                        .every((value) => value);
+                                  });
+                                },
+                                child: CircleAvatar(
+                                  radius: 10.0,
+                                  backgroundColor:
+                                  selected ? Colors.black : Colors.grey[300],
+                                  child: selected
+                                      ? const Icon(Icons.check,
+                                      color: Colors.white, size: 14.0)
+                                      : null,
+                                ),
+                              ),
+                              title: Text(
+                                _getCardLabel(key),
+                                style: const TextStyle(fontSize: 16.0),
+                              ),
                               onTap: () {
                                 setState(() {
-                                  _infoCardOptions[cardName] =
-                                  !_infoCardOptions[cardName]!;
-                                  _selectAll = _infoCardOptions.values
+                                  _selectionMap[key] = !selected;
+                                  _selectAll = _selectionMap.values
                                       .every((value) => value);
                                 });
                               },
-                              child: CircleAvatar(
-                                radius: 10.0,
-                                backgroundColor: _infoCardOptions[cardName]!
-                                    ? Colors.black
-                                    : Colors.grey[300],
-                                child: _infoCardOptions[cardName]!
-                                    ? const Icon(Icons.check,
-                                    color: Colors.white, size: 14.0)
-                                    : null,
+                            ),
+                            if (index != _selectionMap.keys.length - 1)
+                              Divider(
+                                height: 3.0,
+                                indent: 50.0,
+                                endIndent: 15.0,
+                                thickness: 1,
+                                color: Colors.grey[300],
                               ),
-                            ),
-                            title: Text(
-                              cardName,
-                              style: const TextStyle(fontSize: 16.0),
-                            ),
-                            onTap: () {
-                              setState(() {
-                                _infoCardOptions[cardName] =
-                                !_infoCardOptions[cardName]!;
-                                _selectAll = _infoCardOptions.values
-                                    .every((value) => value);
-                              });
-                            },
-                          ),
-                          if (index != _infoCardOptions.keys.length - 1)
-                            Divider(
-                              height: 3.0,
-                              indent: 50.0,
-                              endIndent: 15.0,
-                              thickness: 1,
-                              color: Colors.grey[300],
-                            ),
-                        ],
-                      );
-                    }),
-                  ],
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Container(
-            color: Colors.grey[200],
-            child: BottomActionButtons(
-              onCancel: () {
-                Navigator.pop(context);
-              },
-              onSave: () {
-                final selectedCards = _infoCardOptions.entries
-                    .where((entry) => entry.value)
-                    .map((entry) => entry.key)
-                    .toList();
+            Container(
+              color: Colors.grey[200],
+              child: BottomActionButtons(
+                onCancel: () => Navigator.pop(context),
+                onSave: () {
+                  final selectedCards = _selectionMap.entries
+                      .where((e) => e.value)
+                      .map((e) => e.key)
+                      .toList();
 
-                Navigator.pop(context, selectedCards);
-              },
+                  Navigator.pop(context, selectedCards);
+                },
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 }

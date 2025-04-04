@@ -4,13 +4,13 @@ import 'package:openfoodfacts/openfoodfacts.dart';
 import 'package:sweet_balance/ui/screens/product_detail_screen.dart';
 import 'package:sweet_balance/ui/screens/search_screen.dart';
 
-class RecipesInfoCard extends StatelessWidget {
+class ProductsInfoCard extends StatelessWidget {
   final String title;
   final List<Product> products;
   final bool isLoading;
   final SortOption sortOption;
 
-  const RecipesInfoCard({
+  const ProductsInfoCard({
     super.key,
     required this.title,
     required this.products,
@@ -51,7 +51,7 @@ class RecipesInfoCard extends StatelessWidget {
                 else if (products.isEmpty)
                   const SizedBox(
                     height: 100,
-                    child: Center(child: Text('No recipes found', style: TextStyle(color: Colors.grey))),
+                    child: Center(child: Text('No products found', style: TextStyle(color: Colors.grey))),
                   )
                 else
                   SizedBox(

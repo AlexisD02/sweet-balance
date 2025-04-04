@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../screens/favourites_screen.dart';
 
 class PlanMealsCardInfo extends StatelessWidget {
@@ -9,8 +8,17 @@ class PlanMealsCardInfo extends StatelessWidget {
     {'title': 'My Favourites', 'icon': Icons.favorite, 'color': Colors.blue},
     {'title': 'Meal Planning', 'icon': Icons.calendar_month, 'color': Colors.red},
     {'title': 'Print Weekly Meals', 'icon': Icons.print_rounded, 'color': Colors.green},
-    {'title': 'Upload Recipe', 'icon': Icons.cloud_upload, 'color': Colors.deepOrange},
+    {'title': 'Upload Product', 'icon': Icons.cloud_upload, 'color': Colors.deepOrange},
   ];
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Coming soon..."),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +36,18 @@ class PlanMealsCardInfo extends StatelessWidget {
                 final item = items[index];
                 return GestureDetector(
                   onTap: () {
-                    if (item['title'] == 'My Favourites') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const FavouritesScreen()),
-                      );
+                    switch (item['title']) {
+                      case 'My Favourites':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const FavouritesScreen()),
+                        );
+                        break;
+                      case 'Meal Planning':
+                      case 'Print Weekly Meals':
+                      case 'Upload Product':
+                        _showComingSoon(context);
+                        break;
                     }
                   },
                   child: Container(

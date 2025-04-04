@@ -1,7 +1,9 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -63,11 +65,24 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     if (user == null) return;
 
     try {
+      String? avatarUrl = widget.avatarUrl;
+
+      if (_selectedImage != null) {
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('user_avatars')
+            .child('${user.uid}.jpg');
+
+        final uploadTask = await ref.putFile(_selectedImage!);
+        avatarUrl = await uploadTask.ref.getDownloadURL();
+      }
+
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'firstName': _nameController.text.trim(),
         'gender': _genderController.text.trim(),
         'height': double.tryParse(_heightController.text.trim()) ?? 0.0,
         'weight': double.tryParse(_weightController.text.trim()) ?? 0.0,
+        'avatarUrl': avatarUrl,
       });
 
       if (!mounted) return;
@@ -78,8 +93,9 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
+        const SnackBar(content: Text('Failed to update profile')),
       );
+      log('Failed to update profile: $e');
     }
   }
 
@@ -87,13 +103,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-            label,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0
-            )
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0)),
         TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -117,7 +127,10 @@ class EditProfileScreenState extends State<EditProfileScreen> {
             radius: 110,
             backgroundImage: _selectedImage != null
                 ? FileImage(_selectedImage!)
-                : NetworkImage(widget.avatarUrl) as ImageProvider,
+                : (widget.avatarUrl.isNotEmpty
+                ? NetworkImage(widget.avatarUrl)
+                : const AssetImage('assets/images/avatar_placeholder.png'))
+            as ImageProvider,
             backgroundColor: Colors.grey[200],
           ),
           const SizedBox(height: 20),
@@ -127,20 +140,14 @@ class EditProfileScreenState extends State<EditProfileScreen> {
               ElevatedButton.icon(
                 onPressed: _openGallery,
                 icon: const Icon(Icons.photo, color: Colors.black),
-                label: const Text(
-                    "Gallery",
-                    style: TextStyle(color: Colors.black)
-                ),
+                label: const Text("Gallery", style: TextStyle(color: Colors.black)),
                 style: _buttonStyle(),
               ),
               const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: _openCamera,
                 icon: const Icon(Icons.camera, color: Colors.black),
-                label: const Text(
-                    "Camera",
-                    style: TextStyle(color: Colors.black)
-                ),
+                label: const Text("Camera", style: TextStyle(color: Colors.black)),
                 style: _buttonStyle(),
               ),
             ],
@@ -157,50 +164,22 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Email",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-          ),
-
+          const Text("Email", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0)),
           const SizedBox(height: 8),
-
-          Text(
-            widget.userEmail,
-            style: const TextStyle(fontSize: 16.0, color: Colors.black87),
-          ),
-
+          Text(widget.userEmail, style: const TextStyle(fontSize: 16.0, color: Colors.black87)),
           const SizedBox(height: 20),
-
-          const Text(
-            "Date of Birth",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-          ),
-
+          const Text("Date of Birth", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0)),
           const SizedBox(height: 8),
-
-          Text(
-            widget.userDOB,
-            style: const TextStyle(fontSize: 16.0, color: Colors.black87),
-          ),
-
+          Text(widget.userDOB, style: const TextStyle(fontSize: 16.0, color: Colors.black87)),
           const SizedBox(height: 15),
-
           const Divider(thickness: 2.5, color: Colors.black),
-
           const SizedBox(height: 15),
-
           _buildField("Name", _nameController),
-
           const SizedBox(height: 20),
-
           _buildField("Gender", _genderController),
-
           const SizedBox(height: 20),
-
           _buildField("Height (cm)", _heightController),
-
           const SizedBox(height: 20),
-
           _buildField("Weight (kg)", _weightController),
         ],
       ),
@@ -239,7 +218,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
+        preferredCameraDevice: CameraDevice.rear,
       );
       if (photo != null) {
         setState(() => _selectedImage = File(photo.path));

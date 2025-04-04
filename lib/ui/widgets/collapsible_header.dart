@@ -17,7 +17,7 @@ class CollapsibleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       pinned: true,
       floating: false,
       expandedHeight: 300.0,

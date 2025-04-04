@@ -5,7 +5,7 @@ import 'package:sweet_balance/ui/screens/search_screen.dart';
 import 'package:sweet_balance/ui/widgets/plan_meals_section.dart';
 
 import '../widgets/collapsible_header.dart';
-import '../widgets/infoCards/recipes_info_card.dart';
+import '../widgets/infoCards/products_info_card.dart';
 import '../widgets/quick_product_categories.dart';
 
 class MealsScreen extends StatefulWidget {
@@ -57,7 +57,7 @@ class _MealsScreenState extends State<MealsScreen> {
       child: FutureBuilder<List<Product>>(
         future: fetchProducts(sortOption: sortOption),
         builder: (context, snapshot) {
-          return RecipesInfoCard(
+          return ProductsInfoCard(
             title: title,
             products: snapshot.data ?? [],
             isLoading: snapshot.connectionState == ConnectionState.waiting,
@@ -106,7 +106,7 @@ class _MealsScreenState extends State<MealsScreen> {
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.only(left: 10.0),
-              child: QuickRecipesCategories(),
+              child: QuickProductsCategories(),
             ),
           ),
 

@@ -221,7 +221,6 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[200],
-        elevation: 0,
         titleSpacing: 10,
         title: SearchField(
           placeholder: 'Search for a product...',

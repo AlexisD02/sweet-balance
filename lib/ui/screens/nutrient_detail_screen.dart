@@ -116,10 +116,20 @@ class _NutrientDetailScreenState extends State<NutrientDetailScreen> {
       appBar: AppBar(
         title: Text('${widget.label} Details'),
         backgroundColor: Colors.grey[100],
-        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _dayWiseData.isEmpty
+          ? Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Text(
+            "No data available for ${widget.label}.",
+            style: const TextStyle(fontSize: 18, color: Colors.black54),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      )
           : Container(
         color: Colors.grey[200],
         child: ListView(
@@ -138,6 +148,8 @@ class _NutrientDetailScreenState extends State<NutrientDetailScreen> {
   }
 
   Widget _buildBarGraph() {
+    if (_dayWiseData.isEmpty) return const SizedBox.shrink();
+
     final maxValue = _dayWiseData.map((e) => e['value'] as double).reduce(max);
     final interval = calculateInterval(maxValue);
     final roundedMax = calculateRoundedMax(maxValue, interval);
@@ -276,7 +288,8 @@ class _NutrientDetailScreenState extends State<NutrientDetailScreen> {
           ...shownData.map((e) {
             final double value = e['value'] ?? 0;
             final String day = e['day'] ?? '';
-            final List<Map<String, dynamic>> products = List<Map<String, dynamic>>.from(e['products'] ?? []);
+            final List<Map<String, dynamic>> products =
+            List<Map<String, dynamic>>.from(e['products'] ?? []);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,23 +327,24 @@ class _NutrientDetailScreenState extends State<NutrientDetailScreen> {
               ],
             );
           }),
-          Center(
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  _showAll = !_showAll;
-                });
-              },
-              child: Text(
-                _showAll ? 'View Less' : 'View All',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
+          if (_dayWiseData.length > 3)
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    _showAll = !_showAll;
+                  });
+                },
+                child: Text(
+                  _showAll ? 'View Less' : 'View All',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
                 ),
               ),
-            ),
-          )
+            )
         ],
       ),
     );

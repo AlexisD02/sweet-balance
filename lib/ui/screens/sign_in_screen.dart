@@ -189,7 +189,22 @@ class _SignInScreenState extends State<SignInScreen> {
             const SizedBox(height: 25),
 
             ElevatedButton.icon(
-              onPressed: _auth.handleGoogleLogin,
+              onPressed: () async {
+                final (user, error) = await _auth.handleGoogleLogin();
+
+                if (user != null) {
+                  goToHome();
+                }
+                else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(error ?? 'Google sign-in failed'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+
               icon: SvgPicture.asset("assets/images/svg/google_logo.svg", height: 24),
               label: const Text(
                 "Continue With Google",

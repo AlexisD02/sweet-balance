@@ -200,6 +200,8 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
             });
           }
 
+          if (!mounted) return;
+
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomePage()),
@@ -207,6 +209,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           );
         } catch (e) {
           if (!mounted) return;
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Google sign-in failed: ${e.toString()}")),
           );
@@ -276,33 +279,6 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _previousStep,
-          ),
-          actions: currentStep == totalSteps
-              ? [
-            TextButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomePage()),
-                      (route) => false,
-                );
-              },
-              child: Text(
-                "SKIP",
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14.0,
-                ),
-              ),
-            ),
-          ]
-              : [],
         ),
         body: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../screens/info_tracking_screen.dart';
+import '../../screens/nutrient_detail_screen.dart';
 
 class NutrientStatCard extends StatefulWidget {
   final String nutrientKey;
