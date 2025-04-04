@@ -12,28 +12,29 @@ class FavouritesScreen extends StatefulWidget {
 }
 
 class _FavouritesScreenState extends State<FavouritesScreen> {
-  List<Map<String, dynamic>> _favorites = [];
+  List<Map<String, dynamic>> _favouriteProducts = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFavorites();
+    _loadFavorites(); // Start loading user's favourites on screen init
   }
 
+  // Fetches favourite products from Firestore (sorted by latest)
   Future<void> _loadFavorites() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
 
-    final query = await FirebaseFirestore.instance
+    final snapshot = await FirebaseFirestore.instance
         .collection('users')
-        .doc(user.uid)
+        .doc(currentUser.uid)
         .collection('favorites')
         .orderBy('timestamp', descending: true)
         .get();
 
     setState(() {
-      _favorites = query.docs.map((doc) => doc.data()).toList();
+      _favouriteProducts = snapshot.docs.map((doc) => doc.data()).toList();
       _isLoading = false;
     });
   }
@@ -46,40 +47,54 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: _isLoading
+      // Show loading spinner while data is being fetched
           ? const Center(child: CircularProgressIndicator())
-          : _favorites.isEmpty
+
+      // Show message if no favourites found
+          : _favouriteProducts.isEmpty
           ? const Center(child: Text('No favourites yet.'))
+
+      // Display list of favourite products
           : ListView.builder(
-        itemCount: _favorites.length,
+        itemCount: _favouriteProducts.length,
         itemBuilder: (context, index) {
-          final item = _favorites[index];
+          final product = _favouriteProducts[index];
+
           return ListTile(
-            leading: item['imageUrl'] != ''
+            leading: product['imageUrl'] != ''
+            // If image URL exists, show image
                 ? ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: Image.network(
-                item['imageUrl'],
+                product['imageUrl'],
                 width: 50,
                 height: 50,
                 fit: BoxFit.cover,
               ),
             )
+            // Otherwise show fallback icon
                 : const Icon(Icons.fastfood, size: 40),
-            title: Text(item['productName']),
-            subtitle: Text(item['brand'] ?? 'Unknown Brand'),
-            onTap: () async {
-              final productName = item['productCode'];
-              if (productName == null || productName.isEmpty) return;
 
-              final config = ProductQueryConfiguration(
-                productName,
+            title: Text(product['productName']),
+            subtitle: Text(product['brand'] ?? 'Unknown Brand'),
+
+            onTap: () async {
+              final productCode = product['productCode'];
+
+              // Skip if productCode is missing or empty
+              if (productCode == null || productCode.isEmpty) return;
+
+              // Create request config for OpenFoodFacts
+              final query = ProductQueryConfiguration(
+                productCode,
                 version: ProductQueryVersion.v3,
                 language: OpenFoodFactsLanguage.ENGLISH,
                 fields: [ProductField.ALL],
               );
 
-              final result = await OpenFoodAPIClient.getProductV3(config);
+              final result = await OpenFoodAPIClient.getProductV3(query);
 
+              // Navigate to product details if found
               if (result.product != null && context.mounted) {
                 Navigator.push(
                   context,
@@ -87,12 +102,11 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                     builder: (_) => ProductDetailScreen(product: result.product!),
                   ),
                 );
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to load product details')),
-                  );
-                }
+              } else if (context.mounted) {
+                // Show error if product not found
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Failed to load product details')),
+                );
               }
             },
           );

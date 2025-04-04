@@ -9,7 +9,7 @@ import '../../service/auth_service.dart';
 import '../widgets/collapsible_header.dart';
 import '../widgets/infoCards/account_info_card.dart';
 
-
+// Profile screen where user can view their personal details and manage their account
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -19,6 +19,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final ScrollController _scrollController = ScrollController();
+
+  // Centralized auth logic is abstracted into AuthService for better testability and separation of concerns
   final AuthService _authService = AuthService();
 
   Map<String, dynamic>? _userData;
@@ -27,35 +29,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Jump to some scroll offset so that header animation is visible on load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.jumpTo(250.0);
     });
-    _loadUserData();
+
+    _loadUserData(); // Load current user data from Firestore
   }
 
+  // Fetch the user's document from Firestore using their UID
   Future<void> _loadUserData() async {
     final user = _authService.getCurrentUser();
-
     if (user != null) {
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      if (doc.exists) {
-        setState(() {
-          _userData = doc.data();
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _userData = null;
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _userData = doc.exists ? doc.data() : null;
+        _isLoading = false;
+      });
     }
   }
 
+  // Format a stored date (String or Timestamp) to dd/mm/yyyy
   String _formatDate(dynamic dob) {
     try {
       DateTime date;
@@ -66,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } else {
         return 'N/A';
       }
+
       return "${date.day.toString().padLeft(2, '0')}/"
           "${date.month.toString().padLeft(2, '0')}/"
           "${date.year}";
@@ -74,6 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // Logs out the current user and redirects to sign-in screen
   Future<void> _signOut() async {
     await _authService.signOut();
     if (!mounted) return;
@@ -85,6 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Starts the account deletion process: confirms password, then deletes user data
   Future<void> _deleteAccountFlow() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -92,7 +94,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         title: const Text('Delete Account'),
         content: const Text(
-            'Are you sure you want to delete your account permanently? This action cannot be undone.'),
+          'Are you sure you want to delete your account permanently? This action cannot be undone.',
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
@@ -113,6 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if(!mounted) return;
 
+    // Ask for password confirmation before destructive action
     final confirmPassword = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -140,14 +144,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final password = passwordController.text.trim();
+
+      // Re-authenticate before deletion for security purposes
       if (email != null && password.isNotEmpty) {
         final credential = EmailAuthProvider.credential(email: email, password: password);
         await user.reauthenticateWithCredential(credential);
 
+        // Remove user data from Firestore and FirebaseAuth
         await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
         await user.delete();
 
-        if(!mounted) return;
+        if (!mounted) return;
 
         Navigator.pushAndRemoveUntil(
           context,
@@ -156,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } catch (e) {
-      if(!mounted) return;
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to delete account: ${e.toString()}")),
@@ -180,11 +187,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         controller: _scrollController,
         slivers: [
           const CollapsibleHeader(title: "My Page"),
+
+          // Show loading spinner or data based on loading state
           SliverToBoxAdapter(
             child: _isLoading
-                ? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
+                ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            )
                 : _userData == null
-                ? const Padding(padding: EdgeInsets.all(16), child: Text("User data not found."))
+                ? const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text("User data not found."),
+            )
                 : Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: AccountInfoCard(
@@ -193,8 +210,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 userEmail: user?.email ?? '',
                 userDOB: _formatDate(_userData?['dob']),
                 userGender: _userData?['gender'] ?? 'N/A',
-                userCreatedAt:
-                (_userData?['createdAt'] as Timestamp?)?.toDate().toIso8601String() ?? '',
+                userCreatedAt: (_userData?['createdAt'] as Timestamp?)
+                    ?.toDate()
+                    .toIso8601String() ??
+                    '',
                 userHeight: _userData?['height']?.toString() ?? 'N/A',
                 userWeight: _userData?['weight']?.toString() ?? 'N/A',
                 avatarUrl: _userData?['avatarUrl'] ?? '',
@@ -202,6 +221,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+
+          // Log out tile
           SliverToBoxAdapter(
             child: _buildTile(
               icon: Icons.logout,
@@ -210,6 +231,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               iconColor: Colors.red[400],
             ),
           ),
+
+          // Delete account tile
           SliverToBoxAdapter(
             child: _buildTile(
               icon: Icons.delete_forever,
@@ -223,6 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // UI helper method to render a settings-style option tile
   Widget _buildTile({
     required IconData icon,
     required String text,

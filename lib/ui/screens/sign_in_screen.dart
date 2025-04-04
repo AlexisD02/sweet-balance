@@ -15,11 +15,16 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _auth = AuthService();
 
+  // Form key helps us validate user input before login
+  final _formKey = GlobalKey<FormState>();
+
+  // Text controllers for capturing user credentials
   final _email = TextEditingController();
   final _password = TextEditingController();
+
+  // Controls password visibility toggle
   bool _obscurePassword = true;
 
   @override
@@ -29,6 +34,7 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
+  // Navigates to home page screen after successful login
   void goToHome() {
     Navigator.pushAndRemoveUntil(
       context,
@@ -37,6 +43,7 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
+  // Navigates to password recovery screen
   void goToForgotPassword() {
     Navigator.push(
       context,
@@ -44,6 +51,7 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
+  // Navigates to user registration screen by providing multi-step form
   void goToRegister() {
     Navigator.push(
       context,
@@ -73,10 +81,12 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
             const SizedBox(height: 30),
 
+            // Form for user credentials input and validation
             Form(
               key: _formKey,
               child: Column(
                 children: [
+                  // Email input with validation
                   TextFormField(
                     controller: _email,
                     decoration: InputDecoration(
@@ -97,6 +107,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     },
                   ),
                   const SizedBox(height: 15),
+
+                  // Password input with show/hide toggle
                   TextFormField(
                     controller: _password,
                     obscureText: _obscurePassword,
@@ -106,9 +118,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                          // Allow user to toggle password visibility
+                          setState(() => _obscurePassword = !_obscurePassword);
                         },
                       ),
                       filled: true,
@@ -129,6 +140,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
             const SizedBox(height: 5),
 
+            // Link to reset password
             Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
@@ -142,6 +154,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
             const SizedBox(height: 30),
 
+            // Main login button using email/password
             ElevatedButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
@@ -154,6 +167,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     log("User signed in successfully");
                     goToHome();
                   } else {
+                    // Show error if login failed
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(error ?? 'Login failed')),
                     );
@@ -175,6 +189,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
             const SizedBox(height: 25),
 
+            // Visual divider between email and Google sign-in
             const Row(
               children: [
                 Expanded(child: Divider(thickness: 0.8, color: Colors.grey)),
@@ -188,14 +203,15 @@ class _SignInScreenState extends State<SignInScreen> {
 
             const SizedBox(height: 25),
 
+            // Google Sign-in integration
             ElevatedButton.icon(
               onPressed: () async {
                 final (user, error) = await _auth.handleGoogleLogin();
 
                 if (user != null) {
                   goToHome();
-                }
-                else {
+                } else {
+                  // Inform the user if google login fails
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(error ?? 'Google sign-in failed'),
@@ -204,7 +220,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   );
                 }
               },
-
               icon: SvgPicture.asset("assets/images/svg/google_logo.svg", height: 24),
               label: const Text(
                 "Continue With Google",
@@ -220,6 +235,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
             const SizedBox(height: 25),
 
+            // Link to go to registration if the user doesn't have an account
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

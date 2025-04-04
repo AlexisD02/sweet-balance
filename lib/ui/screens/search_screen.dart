@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async'; // Timer is used for debouncing the search input
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 import '../widgets/search_field.dart';
@@ -10,8 +10,8 @@ class SearchScreen extends StatefulWidget {
 
   const SearchScreen({
     super.key,
-    this.initialSort = SortOption.POPULARITY,
-    this.initialCategoryFilter,
+    this.initialSort = SortOption.POPULARITY, // Default to most popular results
+    this.initialCategoryFilter, // Used when we want to pre-filter by category
   });
 
   @override
@@ -30,32 +30,40 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Load initial sort and category from passed arguments
     _sortOption = widget.initialSort;
+
     if (widget.initialCategoryFilter != null) {
       _selectedCategories = [widget.initialCategoryFilter!];
     }
+
+    // Fetch product list on load
     _fetchProducts();
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _debounce?.cancel(); // Clean up the debounce timer
     super.dispose();
   }
 
+  // Debounce to avoid calling the API on every keystroke
   void _onSearchChanged(String query) {
     setState(() => _searchQuery = query);
+
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 700), _fetchProducts);
   }
 
   void _onCategoryChanged(List<String> selected) {
     setState(() {
-      _selectedCategories = selected;
+      _selectedCategories = selected; // Update filters
     });
-    _fetchProducts();
+    _fetchProducts(); // Refetch with new filters
   }
 
+  // Fetch products from OpenFoodFacts API based on search and filters
   Future<void> _fetchProducts() async {
     setState(() {
       _isLoading = true;
@@ -65,7 +73,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final parameters = <Parameter>[
         const PageSize(size: 20),
-        SortBy(option: _sortOption),
+        SortBy(option: _sortOption), // Respect current sort setting
         if (_searchQuery.trim().isNotEmpty)
           SearchTerms(terms: [_searchQuery]),
         for (final category in _selectedCategories)
@@ -93,6 +101,7 @@ class _SearchScreenState extends State<SearchScreen> {
         config,
       );
 
+      // Only keep products that have meaningful nutritional info
       final filtered = result.products?.where((p) {
         final n = p.nutriments;
         return n?.getValue(Nutrient.energyKCal, PerSize.oneHundredGrams) != null ||
@@ -112,6 +121,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  // Bottom sheet filter UI for category selection
   void _showCategoryFilterSheet() {
     final allCategories = [
       'drinks',
@@ -146,6 +156,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
+                        // Display each category as a checkbox
                         ...allCategories.map((category) {
                           final capitalized = category[0].toUpperCase() + category.substring(1).replaceAll('-', ' ');
                           return CheckboxListTile(
@@ -165,6 +176,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ],
                     ),
                   ),
+                  // "Apply Filter" button fixed at bottom
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -253,6 +265,7 @@ class _SearchScreenState extends State<SearchScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Stack(
               children: [
+                // Background image or placeholder
                 SizedBox(
                   height: 180,
                   width: double.infinity,
@@ -264,6 +277,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: const Icon(Icons.fastfood, size: 40, color: Colors.grey),
                   ),
                 ),
+                // Gradient overlay for readability
                 Container(
                   height: 180,
                   width: double.infinity,
@@ -272,12 +286,13 @@ class _SearchScreenState extends State<SearchScreen> {
                       begin: Alignment.bottomCenter,
                       end: Alignment.center,
                       colors: [
-                        Colors.black.withValues(alpha: 0.5),
+                        Colors.black.withAlpha(120),
                         Colors.transparent,
                       ],
                     ),
                   ),
                 ),
+                // Product name and brand text
                 Positioned(
                   left: 16,
                   bottom: 16,
@@ -308,6 +323,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     ],
                   ),
                 ),
+
+                // Full clickable area to open product detail
                 Material(
                   color: Colors.transparent,
                   child: InkWell(

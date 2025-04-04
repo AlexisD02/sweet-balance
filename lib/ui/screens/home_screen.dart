@@ -18,18 +18,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController();
-  int _currentIndex = 0;
-  bool _isEditMode = false;
 
-  List<Widget> _infoCards = [];
-  final List<String> _removedKeys = [];
+  int _currentIndex = 0; // Keeps track of the current page index
+  bool _isEditMode = false; // Enables reorder/remove mode for cards
+
+  List<Widget> _infoCards = []; // Cards currently visible on home screen
+  final List<String> _removedKeys = []; // Tracks which cards have been removed
 
   @override
   void initState() {
     super.initState();
-    _infoCards = _buildInitialCards();
+    _infoCards = _buildInitialCards(); // Initialize home with default cards
   }
 
+  // Builds default cards to be shown on load
   List<Widget> _buildInitialCards() {
     return [
       _buildCard('sugar'),
@@ -39,6 +41,7 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
+  // Creates a specific widget from a given key
   Widget _buildCard(String keyName) {
     return NutrientStatCard(
       key: ValueKey(keyName),
@@ -51,6 +54,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Removes a card by its key and remembers it in _removedKeys
   void _removeCardByKey(String keyName) {
     setState(() {
       _infoCards.removeWhere((card) => (card.key as ValueKey).value == keyName);
@@ -60,10 +64,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Toggles the editable mode and rebuilds cards with edit options
   void _toggleEditMode() {
     setState(() {
       _isEditMode = !_isEditMode;
 
+      // Rebuild all cards to reflect new edit mode status
       _infoCards = _infoCards.map((widget) {
         final key = widget.key;
         if (key is ValueKey<String>) {
@@ -74,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // User can reorder cards when dragged around
   void _onReorder(int oldIndex, int newIndex) {
     setState(() {
       final item = _infoCards.removeAt(oldIndex);
@@ -81,14 +88,16 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Navigates to add cards screen, for the selection of adding new cards
   void _navigateToNewScreen() async {
     final addedKeys = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(
-        builder: (context) => AddInfoCard(removedKeys: _removedKeys),
+        builder: (context) => AddInfoCard(removedCardKeys: _removedKeys),
       ),
     );
 
+    // Add only cards that are not already on screen
     if (addedKeys != null && addedKeys.isNotEmpty) {
       setState(() {
         for (final key in addedKeys) {
@@ -107,9 +116,7 @@ class _HomePageState extends State<HomePage> {
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
         },
         children: [
           _buildHomePage,
@@ -130,11 +137,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Main scrollable content for the home screen
   Widget get _buildHomePage {
     return Container(
       color: Colors.grey[200],
       child: CustomScrollView(
         slivers: [
+          // Collapsible header bar with toggle/edit button
           CollapsibleHeader(
             title: _isEditMode ? "Edit Home" : "Sweet Balance",
             isEditMode: _isEditMode,
@@ -154,11 +163,11 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(width: 10),
             ],
           ),
+
+          // Allows drag-and-drop to reorder the info cards
           ReorderableSliverList(
             enabled: _isEditMode,
-            delegate: ReorderableSliverChildListDelegate(
-              _infoCards,
-            ),
+            delegate: ReorderableSliverChildListDelegate(_infoCards),
             onReorder: _isEditMode ? _onReorder : (_, __) {},
           ),
         ],
@@ -166,6 +175,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Mapping keys to OpenFoodFacts nutrient fields
   String _getNutrientKey(String keyName) {
     switch (keyName) {
       case 'sugar':
@@ -181,6 +191,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // User-facing labels for each nutrient info card
   String _getLabel(String keyName) {
     switch (keyName) {
       case 'sugar':
@@ -196,6 +207,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Icon that best represents each nutrient for info card
   IconData _getIcon(String keyName) {
     switch (keyName) {
       case 'sugar':
@@ -211,6 +223,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Colour to visually distinguish the info card
   Color _getColor(String keyName) {
     switch (keyName) {
       case 'sugar':

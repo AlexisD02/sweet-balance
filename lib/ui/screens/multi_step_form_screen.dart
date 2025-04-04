@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sweet_balance/ui/screens/home_screen.dart';
 
+// Import each step of the form
 import '../widgets/multiStepForm/activity_section.dart';
 import '../widgets/multiStepForm/weight_input_section.dart';
 import '../widgets/multiStepForm/gender_input_section.dart';
@@ -23,6 +24,7 @@ class MultiStepFormScreen extends StatefulWidget {
 }
 
 class MultiStepFormScreenState extends State<MultiStepFormScreen> {
+  // Controllers for input fields
   final TextEditingController weightController = TextEditingController();
   final TextEditingController otherGenderController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
@@ -30,14 +32,13 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  // State variables
   bool obscurePassword = true;
   bool agreeToTerms = false;
   bool agreeToPrivacyPolicy = false;
-
   DateTime selectedDate = DateTime.now();
   int selectedActivityIndex = 0;
   String? selectedGender;
-
   int currentStep = 1;
   final int totalSteps = 6;
 
@@ -51,6 +52,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
 
   @override
   void dispose() {
+    // Dispose controllers to avoid memory leaks
     weightController.dispose();
     otherGenderController.dispose();
     heightController.dispose();
@@ -60,6 +62,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
     super.dispose();
   }
 
+  // Moves to the next step if validation passes
   void _nextStep() {
     final form = _formKey.currentState!;
     if (form.validate()) {
@@ -67,6 +70,8 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
         if (currentStep < totalSteps) {
           currentStep++;
         }
+
+        // If we reach the final step and terms are accepted, go to home
         if (currentStep == totalSteps) {
           if (agreeToTerms && agreeToPrivacyPolicy) {
             Navigator.pushAndRemoveUntil(
@@ -80,6 +85,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
     }
   }
 
+  // Goes back to the previous step or exits if at the beginning
   void _previousStep() {
     if (currentStep > 1) {
       setState(() {
@@ -90,6 +96,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
     }
   }
 
+  // Builds the final registration step including Firebase logic
   Widget _buildRegistrationStep() {
     return RegisterStep(
       firstNameController: firstNameController,
@@ -103,16 +110,10 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           obscurePassword = !obscurePassword;
         });
       },
-      onAgreeToTermsChanged: (value) {
-        setState(() {
-          agreeToTerms = value;
-        });
-      },
-      onAgreeToPrivacyPolicyChanged: (value) {
-        setState(() {
-          agreeToPrivacyPolicy = value;
-        });
-      },
+      onAgreeToTermsChanged: (value) => setState(() => agreeToTerms = value),
+      onAgreeToPrivacyPolicyChanged: (value) => setState(() => agreeToPrivacyPolicy = value),
+
+      // Handles regular email/password sign up
       onSignUpPressed: () async {
         if (_formKey.currentState!.validate()) {
           if (agreeToTerms && agreeToPrivacyPolicy) {
@@ -147,7 +148,6 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
               }
             } on FirebaseAuthException catch (e) {
               if (!mounted) return;
-
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(e.message ?? 'Sign up failed.')),
               );
@@ -161,14 +161,14 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           }
         }
       },
+
+      // Handles Google Sign-In and user creation in Firestore
       onGoogleSignUpPressed: () async {
         try {
           final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-          if (googleUser == null) {
-            return;
-          }
+          if (googleUser == null) return;
 
-          final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+          final googleAuth = await googleUser.authentication;
 
           final credential = GoogleAuthProvider.credential(
             accessToken: googleAuth.accessToken,
@@ -176,7 +176,6 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           );
 
           final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-
           final uid = userCredential.user?.uid;
           final email = userCredential.user?.email ?? '';
           final displayName = userCredential.user?.displayName ?? '';
@@ -209,7 +208,6 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           );
         } catch (e) {
           if (!mounted) return;
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Google sign-in failed: ${e.toString()}")),
           );
@@ -218,6 +216,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
     );
   }
 
+  // Returns the correct widget for the current step
   Widget _buildStepContent() {
     switch (currentStep) {
       case 1:
@@ -228,9 +227,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           onGenderChanged: (gender) {
             setState(() {
               selectedGender = gender;
-              if (gender != "Other") {
-                otherGenderController.clear();
-              }
+              if (gender != "Other") otherGenderController.clear();
             });
           },
           otherGenderController: otherGenderController,
@@ -240,20 +237,12 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
       case 4:
         return DatePickerSection(
           selectedDate: selectedDate,
-          onDateChanged: (newDate) {
-            setState(() {
-              selectedDate = newDate;
-            });
-          },
+          onDateChanged: (newDate) => setState(() => selectedDate = newDate),
         );
       case 5:
         return ActivitySelector(
           selectedActivityIndex: selectedActivityIndex,
-          onActivitySelected: (index) {
-            setState(() {
-              selectedActivityIndex = index;
-            });
-          },
+          onActivitySelected: (index) => setState(() => selectedActivityIndex = index),
         );
       case 6:
         return _buildRegistrationStep();
@@ -269,9 +258,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (!didPop) {
-          _previousStep();
-        }
+        if (!didPop) _previousStep();
       },
       child: Scaffold(
         key: const Key('multiStepFormScreen'),
@@ -281,7 +268,7 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
         body: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
+          onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Form(
@@ -302,10 +289,16 @@ class MultiStepFormScreenState extends State<MultiStepFormScreen> {
             ),
           ),
         ),
+
+        // Navigation buttons shown only for steps 1–5
         bottomNavigationBar: currentStep < totalSteps
             ? SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(40.0, 0, 40.0, isKeyboardOpen
+            padding: EdgeInsets.fromLTRB(
+              40.0,
+              0,
+              40.0,
+              isKeyboardOpen
                   ? MediaQuery.of(context).viewInsets.bottom + 16.0
                   : 16.0,
             ),

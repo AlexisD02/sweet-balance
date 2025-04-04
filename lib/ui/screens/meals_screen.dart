@@ -21,11 +21,13 @@ class _MealsScreenState extends State<MealsScreen> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.jumpTo(250.0);
     });
   }
 
+  // Fetch a list of products from OpenFoodFacts using a given sort option.
   Future<List<Product>> fetchProducts({
     required SortOption sortOption,
     int pageSize = 5,
@@ -45,7 +47,7 @@ class _MealsScreenState extends State<MealsScreen> {
     );
 
     final result = await OpenFoodAPIClient.searchProducts(
-      const User(userId: '0', password: ''),
+      const User(userId: '0', password: ''), // anonymous user for public search
       config,
     );
 
@@ -75,11 +77,13 @@ class _MealsScreenState extends State<MealsScreen> {
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
+          // Collapsible header with title and search icon
           CollapsibleHeader(
             title: "Meals",
             actions: [
               GestureDetector(
                 onTap: () {
+                  // Navigate to search screen
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const SearchScreen()),
@@ -90,9 +94,12 @@ class _MealsScreenState extends State<MealsScreen> {
               const SizedBox(width: 13.0, height: 45.0),
             ],
           ),
+
+          // Favourites, quick meal plan, print/upload, upload product actions
           const SliverToBoxAdapter(child: PlanMealsCardInfo()),
           const SliverToBoxAdapter(child: SizedBox(height: 5)),
 
+          // Show header for quick filter product categories
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
@@ -103,6 +110,7 @@ class _MealsScreenState extends State<MealsScreen> {
             ),
           ),
 
+          // Show categories of products
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.only(left: 10.0),
@@ -112,6 +120,7 @@ class _MealsScreenState extends State<MealsScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
+          // Premium product header
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
@@ -122,6 +131,7 @@ class _MealsScreenState extends State<MealsScreen> {
             ),
           ),
 
+          // Dynamically loaded product sections
           buildProductSection('Newest Products', SortOption.CREATED),
           buildProductSection('Popular Products', SortOption.POPULARITY),
           buildProductSection('Eco-Friendly Products', SortOption.ECOSCORE),
